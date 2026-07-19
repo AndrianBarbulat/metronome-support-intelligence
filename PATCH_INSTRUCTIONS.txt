@@ -1,0 +1,26 @@
+METRONOME SUPPORT INTELLIGENCE — STRONG APPLICATION LAYOUT
+
+1. Extract this patch over:
+   D:\Projects\metronome-support-intelligence
+
+2. Keep your existing .env and data\metronome_docs.db.
+   This patch does not include or replace either file.
+
+3. Run:
+   python scripts\run_demo.py
+
+4. Open:
+   http://127.0.0.1:8501
+
+The application now includes:
+- Strong sidebar/dashboard layout
+- Ask Metronome workspace
+- Automatic persistence confirmation
+- Saved case history and search
+- Case detail tabs for answer, investigation, sources/grounding, and history
+- Versioned grounded answers
+- Inline approval/rejection/mark-used workflow with no manual IDs
+- System overview metrics
+
+The existing deterministic analysis, documentation retrieval, Gemini provider,
+validation, database schema, and tests are unchanged.
