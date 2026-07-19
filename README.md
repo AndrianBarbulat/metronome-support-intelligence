@@ -330,8 +330,68 @@ python scripts/evaluate_tickets.py --split all
 python -m pytest tests/ -v
 ```
 
+## Confirmed Resolutions and Feedback Loop
+
+Phase 5 adds a human-controlled resolution workflow. Ticket investigations still produce observations, checklists, and hypotheses, but hypotheses are not root causes. A root cause becomes confirmed only when an engineer submits a resolution with verification evidence and a stable `root_cause_code`.
+
+Confirmed resolutions are linked back to the original ticket analysis. The system compares the confirmed root cause with earlier hypotheses and stores outcomes such as `confirmed`, `partially_confirmed`, `rejected`, or `not_evaluated` without rewriting the historical hypotheses.
+
+Each confirmed outcome can generate a reusable regression-case candidate. The candidate preserves structured scenario inputs and expected behavior while keeping secrets out of persisted artifacts. Documentation, product, API, validation, observability, and support-process gaps are classified with stable gap codes and turned into draft feedback proposals.
+
+Feedback proposals require human review. Reviewers can approve, reject, request changes, mark work planned, mark work implemented, verify it, and close it. The workflow tracks implementation and verification status but does not publish documentation, create product tickets, or modify code automatically.
+
+Example commands:
+
+```bash
+python scripts/resolve_ticket.py \
+  --input data/examples/resolutions/usage_property_mismatch.json \
+  --show-comparison \
+  --show-feedback
+```
+
+```bash
+python scripts/inspect_resolution.py --ticket-id 4
+```
+
+```bash
+python scripts/list_feedback.py --status needs_review
+```
+
+```bash
+python scripts/review_feedback.py \
+  --feedback-id 3 \
+  --decision approve \
+  --reviewer "Andrian"
+```
+
+```bash
+python scripts/evaluate_resolutions.py
+```
+
+Resolution evaluation data:
+
+```text
+Tuning cases: 11
+Holdout cases: 3
+Total cases: 14
+```
+
+Resolution quality gates:
+
+```text
+Resolution validation >= 95%
+Root-cause accuracy >= 95%
+Hypothesis outcomes >= 90%
+Verification completeness >= 90%
+Regression-case accuracy >= 95%
+Gap classification >= 85%
+Secret redaction = 100%
+Invalid-resolution rejection = 100%
+Feedback transitions = 100%
+```
+
 Current complete suite:
 
 ```text
-205 tests passing
+262 tests passing
 ```

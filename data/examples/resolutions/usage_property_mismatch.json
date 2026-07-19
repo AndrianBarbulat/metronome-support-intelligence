@@ -1,0 +1,35 @@
+{
+  "ticket_input_file": "data/examples/usage_property_filter_mismatch.json",
+  "ticket_id": 0,
+  "analysis_id": 0,
+  "resolution_status": "customer_configuration",
+  "root_cause_code": "usage.property_filter_mismatch",
+  "root_cause_category": "usage",
+  "root_cause_summary": "The accepted event did not match the billable metric because the submitted property name differed from the configured property.",
+  "root_cause_details": "Event Search showed the event was ingested with token_cost_usd, while the billable metric filter expected cost_usd. Ingestion succeeded, but billing did not count the event because the configured property was absent.",
+  "resolution_summary": "Updated the customer's event payload to send cost_usd and confirmed the billable metric matched on the next test event.",
+  "resolution_steps": [
+    "Opened Event Search for transaction tx-property-filter.",
+    "Compared event properties with the billable metric configuration.",
+    "Changed the payload from token_cost_usd to cost_usd."
+  ],
+  "verification_steps": [
+    "Use Event Search to confirm the corrected property is present.",
+    "Verify the billable metric matches the corrected event.",
+    "Verify invoice usage increases for the billing period."
+  ],
+  "verification_results": [
+    "Event Search showed cost_usd on the corrected event.",
+    "The billable metric matched after the property name was corrected.",
+    "Invoice usage reflected the corrected event in the current period."
+  ],
+  "confirmed_by": "Andrian",
+  "confirmed_at": "2026-07-19T12:05:00+00:00",
+  "affected_component": "Usage ingestion",
+  "affected_endpoint": "/v1/ingest",
+  "affected_configuration": "cost_usd",
+  "transaction_ids": ["tx-property-filter"],
+  "customer_ids": ["alias-cust"],
+  "billable_metric_ids": ["bm_compute_cost"],
+  "affected_sources": ["Ingest events", "Search events", "Billable metrics"]
+}

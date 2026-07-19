@@ -204,4 +204,85 @@ CREATE TABLE IF NOT EXISTS support_ticket_document_links (
     FOREIGN KEY (ticket_id) REFERENCES support_tickets(id) ON DELETE CASCADE,
     FOREIGN KEY (analysis_id) REFERENCES support_ticket_analyses(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS support_ticket_resolutions (
+    id                    INTEGER PRIMARY KEY AUTOINCREMENT,
+    ticket_id             INTEGER NOT NULL,
+    analysis_id           INTEGER NOT NULL,
+    resolution_status     TEXT    NOT NULL,
+    root_cause_code       TEXT    NOT NULL,
+    root_cause_category   TEXT    NOT NULL,
+    root_cause_summary    TEXT    NOT NULL,
+    root_cause_details    TEXT    NOT NULL,
+    resolution_summary    TEXT    NOT NULL,
+    resolution_steps_json TEXT    NOT NULL DEFAULT '[]',
+    verification_steps_json TEXT  NOT NULL DEFAULT '[]',
+    verification_results_json TEXT NOT NULL DEFAULT '[]',
+    affected_component    TEXT,
+    affected_endpoint     TEXT,
+    affected_configuration TEXT,
+    confirmed_by          TEXT    NOT NULL,
+    confirmed_at          TEXT    NOT NULL,
+    created_at            TEXT    NOT NULL,
+    updated_at            TEXT    NOT NULL,
+    FOREIGN KEY (ticket_id) REFERENCES support_tickets(id) ON DELETE CASCADE,
+    FOREIGN KEY (analysis_id) REFERENCES support_ticket_analyses(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS support_resolution_identifiers (
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    resolution_id    INTEGER NOT NULL,
+    identifier_type  TEXT    NOT NULL,
+    identifier_value TEXT    NOT NULL,
+    created_at       TEXT    NOT NULL,
+    FOREIGN KEY (resolution_id) REFERENCES support_ticket_resolutions(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS support_hypothesis_outcomes (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    resolution_id   INTEGER NOT NULL,
+    hypothesis_code TEXT    NOT NULL,
+    outcome         TEXT    NOT NULL,
+    explanation     TEXT    NOT NULL,
+    created_at      TEXT    NOT NULL,
+    FOREIGN KEY (resolution_id) REFERENCES support_ticket_resolutions(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS support_regression_cases (
+    id                     INTEGER PRIMARY KEY AUTOINCREMENT,
+    resolution_id          INTEGER NOT NULL,
+    case_code              TEXT    NOT NULL,
+    title                  TEXT    NOT NULL,
+    scenario               TEXT    NOT NULL,
+    preconditions_json     TEXT    NOT NULL DEFAULT '{}',
+    input_json             TEXT    NOT NULL DEFAULT '{}',
+    expected_behavior_json TEXT    NOT NULL DEFAULT '{}',
+    failure_signature_json TEXT    NOT NULL DEFAULT '{}',
+    verification_json      TEXT    NOT NULL DEFAULT '{}',
+    automation_status      TEXT    NOT NULL DEFAULT 'candidate',
+    created_at             TEXT    NOT NULL,
+    updated_at             TEXT    NOT NULL,
+    FOREIGN KEY (resolution_id) REFERENCES support_ticket_resolutions(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS support_feedback_items (
+    id                    INTEGER PRIMARY KEY AUTOINCREMENT,
+    resolution_id         INTEGER NOT NULL,
+    feedback_type         TEXT    NOT NULL,
+    gap_code              TEXT    NOT NULL,
+    title                 TEXT    NOT NULL,
+    summary               TEXT    NOT NULL,
+    evidence_json         TEXT    NOT NULL DEFAULT '[]',
+    affected_sources_json TEXT    NOT NULL DEFAULT '[]',
+    proposed_change_json  TEXT    NOT NULL DEFAULT '{}',
+    priority              TEXT    NOT NULL DEFAULT 'medium',
+    status                TEXT    NOT NULL DEFAULT 'needs_review',
+    owner                 TEXT,
+    created_at            TEXT    NOT NULL,
+    updated_at            TEXT    NOT NULL,
+    reviewed_at           TEXT,
+    reviewed_by           TEXT,
+    review_notes          TEXT,
+    FOREIGN KEY (resolution_id) REFERENCES support_ticket_resolutions(id) ON DELETE CASCADE
+);
 """.strip()

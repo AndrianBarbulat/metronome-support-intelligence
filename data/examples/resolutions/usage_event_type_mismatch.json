@@ -1,0 +1,34 @@
+{
+  "ticket_input_file": "data/examples/usage_event_type_mismatch.json",
+  "ticket_id": 0,
+  "analysis_id": 0,
+  "resolution_status": "customer_configuration",
+  "root_cause_code": "usage.event_type_mismatch",
+  "root_cause_category": "usage",
+  "root_cause_summary": "The accepted event used an event_type that did not match the configured billable metric.",
+  "root_cause_details": "Event Search showed event_type compute_v2, while the billable metric expected compute.",
+  "resolution_summary": "Changed the event_type to compute and verified the corrected event matched the metric.",
+  "resolution_steps": [
+    "Opened Event Search for transaction tx-event-type.",
+    "Compared event_type with the billable metric configuration.",
+    "Changed the submitted event_type to compute."
+  ],
+  "verification_steps": [
+    "Use Event Search to confirm event_type is compute.",
+    "Verify the billable metric matches the corrected event.",
+    "Verify invoice usage reflects the accepted event."
+  ],
+  "verification_results": [
+    "Event Search showed the corrected event_type.",
+    "The billable metric matched the corrected event.",
+    "Invoice usage reflected the corrected event."
+  ],
+  "confirmed_by": "Andrian",
+  "confirmed_at": "2026-07-19T12:30:00+00:00",
+  "affected_component": "Usage ingestion",
+  "affected_endpoint": "/v1/ingest",
+  "affected_configuration": "event_type=compute",
+  "transaction_ids": ["tx-event-type"],
+  "billable_metric_ids": ["bm_compute_quantity"],
+  "affected_sources": ["Ingest events", "Billable metrics"]
+}

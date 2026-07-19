@@ -1,0 +1,232 @@
+{
+  "version": "1.0.0",
+  "cases": [
+    {
+      "id": "contract-uniqueness-conflict",
+      "resolution_input_file": "data/examples/resolutions/contract_uniqueness_conflict.json",
+      "ticket_input_file": "data/examples/contract_409.json",
+      "split": "tuning",
+      "forbidden_persisted_terms": ["dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U"],
+      "expected": {
+        "expected_root_cause_code": "idempotency.previous_operation_succeeded",
+        "expected_hypothesis_outcomes": {
+          "contract.409.uniqueness": "partially_confirmed"
+        },
+        "expected_gap_codes": [
+          "docs.missing_troubleshooting",
+          "product.no_request_correlation",
+          "support.missing_regression_case"
+        ],
+        "expected_regression_case": true,
+        "required_verification_terms": ["API logs", "existing contract", "customer"]
+      }
+    },
+    {
+      "id": "contract-missing-field",
+      "resolution_input_file": "data/examples/resolutions/contract_missing_field.json",
+      "ticket_input_file": "data/examples/contract_missing_field.json",
+      "split": "tuning",
+      "forbidden_persisted_terms": ["secret-token-abc123"],
+      "expected": {
+        "expected_root_cause_code": "request.missing_required_field",
+        "expected_hypothesis_outcomes": {
+          "contract.400.missing_field": "partially_confirmed"
+        },
+        "expected_gap_codes": [
+          "product.error_missing_field_context",
+          "support.missing_regression_case"
+        ],
+        "expected_regression_case": true,
+        "required_verification_terms": ["starting_at", "missing-field error"]
+      }
+    },
+    {
+      "id": "contract-invalid-timestamp",
+      "resolution_input_file": "data/examples/resolutions/contract_invalid_timestamp.json",
+      "ticket_input_file": "data/examples/contract_invalid_timestamp.json",
+      "split": "tuning",
+      "expected": {
+        "expected_root_cause_code": "request.invalid_timestamp",
+        "expected_hypothesis_outcomes": {},
+        "expected_gap_codes": [
+          "product.error_missing_field_context",
+          "support.missing_regression_case"
+        ],
+        "expected_regression_case": true,
+        "required_verification_terms": ["ISO-8601", "timestamp validation"]
+      }
+    },
+    {
+      "id": "contract-wrong-customer",
+      "resolution_input_file": "data/examples/resolutions/contract_wrong_customer.json",
+      "ticket_input_file": "data/examples/contract_unknown_customer.json",
+      "split": "tuning",
+      "expected": {
+        "expected_root_cause_code": "contract.wrong_customer",
+        "expected_hypothesis_outcomes": {},
+        "expected_gap_codes": ["support.missing_regression_case"],
+        "expected_regression_case": true,
+        "required_verification_terms": ["customer_id", "correct customer"]
+      }
+    },
+    {
+      "id": "usage-event-type-mismatch",
+      "resolution_input_file": "data/examples/resolutions/usage_event_type_mismatch.json",
+      "ticket_input_file": "data/examples/usage_event_type_mismatch.json",
+      "split": "tuning",
+      "expected": {
+        "expected_root_cause_code": "usage.event_type_mismatch",
+        "expected_hypothesis_outcomes": {
+          "usage.200.not_billed": "partially_confirmed"
+        },
+        "expected_gap_codes": [
+          "docs.missing_troubleshooting",
+          "product.no_event_matching_visibility",
+          "support.missing_regression_case"
+        ],
+        "expected_regression_case": true,
+        "required_verification_terms": ["Event Search", "billable metric", "Invoice usage"]
+      }
+    },
+    {
+      "id": "usage-property-mismatch",
+      "resolution_input_file": "data/examples/resolutions/usage_property_mismatch.json",
+      "ticket_input_file": "data/examples/usage_property_filter_mismatch.json",
+      "split": "tuning",
+      "expected": {
+        "expected_root_cause_code": "usage.property_filter_mismatch",
+        "expected_hypothesis_outcomes": {
+          "usage.200.not_billed": "partially_confirmed"
+        },
+        "expected_gap_codes": [
+          "docs.missing_troubleshooting",
+          "product.no_event_matching_visibility",
+          "support.missing_regression_case"
+        ],
+        "expected_regression_case": true,
+        "required_verification_terms": ["Event Search", "billable metric", "invoice usage"]
+      }
+    },
+    {
+      "id": "usage-missing-aggregation-key",
+      "resolution_input_file": "data/examples/resolutions/usage_missing_aggregation_key.json",
+      "ticket_input_file": "data/examples/usage_missing_aggregation_key.json",
+      "split": "tuning",
+      "expected": {
+        "expected_root_cause_code": "usage.aggregation_key_missing",
+        "expected_hypothesis_outcomes": {
+          "usage.200.not_billed": "partially_confirmed"
+        },
+        "expected_gap_codes": [
+          "docs.missing_troubleshooting",
+          "product.no_event_matching_visibility",
+          "support.missing_regression_case"
+        ],
+        "expected_regression_case": true,
+        "required_verification_terms": ["Event Search", "billable metric", "Invoice usage"]
+      }
+    },
+    {
+      "id": "customer-duplicate-alias",
+      "resolution_input_file": "data/examples/resolutions/customer_duplicate_alias.json",
+      "ticket_input_file": "data/examples/customer_duplicate_alias.json",
+      "split": "tuning",
+      "forbidden_persisted_terms": ["customer-secret-token"],
+      "expected": {
+        "expected_root_cause_code": "request.duplicate_identifier",
+        "expected_hypothesis_outcomes": {},
+        "expected_gap_codes": ["support.missing_regression_case"],
+        "expected_regression_case": true,
+        "required_verification_terms": ["ingest alias", "corrected customer"]
+      }
+    },
+    {
+      "id": "documentation-ambiguous-field",
+      "resolution_input_file": "data/examples/resolutions/documentation_ambiguous_field.json",
+      "ticket_input_file": "data/examples/vague_ticket.json",
+      "split": "tuning",
+      "expected": {
+        "expected_root_cause_code": "documentation.ambiguous",
+        "expected_hypothesis_outcomes": {},
+        "expected_gap_codes": ["docs.ambiguous_field"],
+        "expected_regression_case": false,
+        "required_verification_terms": ["affected source", "invoice-period attribution"]
+      }
+    },
+    {
+      "id": "product-defect-usage-matching",
+      "resolution_input_file": "data/examples/resolutions/product_defect_usage_matching.json",
+      "ticket_input_file": "data/examples/usage_accepted_not_billed.json",
+      "split": "tuning",
+      "expected": {
+        "expected_root_cause_code": "product.defect",
+        "expected_hypothesis_outcomes": {
+          "usage.200.not_billed": "rejected"
+        },
+        "expected_gap_codes": [
+          "product.defect",
+          "support.missing_regression_case"
+        ],
+        "expected_regression_case": true,
+        "required_verification_terms": ["engineering replay", "invoice usage", "accepted event"]
+      }
+    },
+    {
+      "id": "invalid-missing-summary",
+      "resolution_input_file": "data/examples/resolutions/invalid_missing_summary.json",
+      "ticket_input_file": "data/examples/contract_missing_field.json",
+      "split": "tuning",
+      "expected": {
+        "expect_valid": false
+      }
+    },
+    {
+      "id": "inactive-rate-card",
+      "resolution_input_file": "data/examples/resolutions/inactive_rate_card.json",
+      "ticket_input_file": "data/examples/contract_unknown_rate_card.json",
+      "split": "holdout",
+      "expected": {
+        "expected_root_cause_code": "rate_card.inactive",
+        "expected_hypothesis_outcomes": {},
+        "expected_gap_codes": ["support.missing_regression_case"],
+        "expected_regression_case": true,
+        "required_verification_terms": ["rate card", "active"]
+      }
+    },
+    {
+      "id": "usage-duplicate-transaction",
+      "resolution_input_file": "data/examples/resolutions/usage_duplicate_transaction.json",
+      "ticket_input_file": "data/examples/usage_duplicate_transaction.json",
+      "split": "holdout",
+      "expected": {
+        "expected_root_cause_code": "usage.duplicate_transaction",
+        "expected_hypothesis_outcomes": {},
+        "expected_gap_codes": [
+          "docs.missing_troubleshooting",
+          "support.missing_regression_case"
+        ],
+        "expected_regression_case": true,
+        "required_verification_terms": ["Event Search", "transaction_id", "Invoice usage"]
+      }
+    },
+    {
+      "id": "usage-timestamp-outside-period",
+      "resolution_input_file": "data/examples/resolutions/usage_timestamp_outside_period.json",
+      "ticket_input_file": "data/examples/usage_timestamp_outside_period.json",
+      "split": "holdout",
+      "expected": {
+        "expected_root_cause_code": "usage.timestamp_outside_period",
+        "expected_hypothesis_outcomes": {
+          "usage.200.not_billed": "partially_confirmed"
+        },
+        "expected_gap_codes": [
+          "docs.missing_troubleshooting",
+          "product.configuration_visibility_gap",
+          "support.missing_regression_case"
+        ],
+        "expected_regression_case": true,
+        "required_verification_terms": ["Event Search", "timestamp", "Invoice usage"]
+      }
+    }
+  ]
+}

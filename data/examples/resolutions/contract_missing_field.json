@@ -1,0 +1,32 @@
+{
+  "ticket_input_file": "data/examples/contract_missing_field.json",
+  "ticket_id": 0,
+  "analysis_id": 0,
+  "resolution_status": "confirmed",
+  "root_cause_code": "request.missing_required_field",
+  "root_cause_category": "request",
+  "root_cause_summary": "The contract creation request omitted the required starting_at field.",
+  "root_cause_details": "The request body included customer_id but did not include starting_at, which is required by the contract creation operation.",
+  "resolution_summary": "Added starting_at to the request body and confirmed the request advanced past required-field validation.",
+  "resolution_steps": [
+    "Compared the request body with the Create a contract required fields.",
+    "Added starting_at to the contract creation payload.",
+    "Replayed the request with a valid ISO timestamp."
+  ],
+  "verification_steps": [
+    "Verify the request includes starting_at.",
+    "Verify the API no longer returns the missing-field error.",
+    "Verify the contract create request reaches normal contract validation."
+  ],
+  "verification_results": [
+    "The corrected request included starting_at.",
+    "The missing-field error was no longer returned.",
+    "The customer confirmed the corrected payload resolved the validation issue."
+  ],
+  "confirmed_by": "Andrian",
+  "confirmed_at": "2026-07-19T12:10:00+00:00",
+  "affected_component": "Contracts API",
+  "affected_endpoint": "/v1/contracts/create",
+  "customer_ids": ["550e8400-e29b-41d4-a716-446655440000"],
+  "affected_sources": ["Create a contract"]
+}

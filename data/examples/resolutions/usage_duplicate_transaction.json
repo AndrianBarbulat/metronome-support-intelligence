@@ -1,0 +1,32 @@
+{
+  "ticket_input_file": "data/examples/usage_duplicate_transaction.json",
+  "ticket_id": 0,
+  "analysis_id": 0,
+  "resolution_status": "confirmed",
+  "root_cause_code": "usage.duplicate_transaction",
+  "root_cause_category": "usage",
+  "root_cause_summary": "The usage ingest request reused a transaction_id from an earlier logical event.",
+  "root_cause_details": "The second request was rejected because transaction_id tx-dup-001 had already been accepted for a previous event.",
+  "resolution_summary": "Generated a new transaction_id for the distinct event and confirmed it was accepted.",
+  "resolution_steps": [
+    "Located the original transaction in Event Search.",
+    "Compared the original event with the retry payload.",
+    "Submitted the distinct event with a new transaction_id."
+  ],
+  "verification_steps": [
+    "Use Event Search to verify the original transaction.",
+    "Verify the corrected event uses a new transaction_id.",
+    "Verify invoice usage reflects only one logical event for each transaction."
+  ],
+  "verification_results": [
+    "Event Search showed the original transaction already existed.",
+    "The corrected event used a new transaction_id.",
+    "Invoice usage reflected the intended events without duplicate counting."
+  ],
+  "confirmed_by": "Andrian",
+  "confirmed_at": "2026-07-19T12:40:00+00:00",
+  "affected_component": "Usage ingestion",
+  "affected_endpoint": "/v1/ingest",
+  "transaction_ids": ["tx-dup-001"],
+  "affected_sources": ["Ingest events", "Search events", "API idempotency"]
+}

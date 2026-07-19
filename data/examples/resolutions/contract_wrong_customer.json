@@ -1,0 +1,31 @@
+{
+  "ticket_input_file": "data/examples/contract_unknown_customer.json",
+  "ticket_id": 0,
+  "analysis_id": 0,
+  "resolution_status": "customer_configuration",
+  "root_cause_code": "contract.wrong_customer",
+  "root_cause_category": "contract",
+  "root_cause_summary": "The contract request referenced a customer ID that did not belong to the intended customer.",
+  "root_cause_details": "The customer_id in the contract creation payload did not resolve to the customer's active Metronome customer record.",
+  "resolution_summary": "Replaced the customer_id with the correct customer record and retried the contract creation request.",
+  "resolution_steps": [
+    "Looked up the customer record using the customer's known external identifier.",
+    "Compared the referenced customer_id with the active customer record.",
+    "Updated the contract payload to use the correct customer_id."
+  ],
+  "verification_steps": [
+    "Verify the customer_id resolves to the intended customer.",
+    "Verify the corrected contract references the right customer."
+  ],
+  "verification_results": [
+    "The corrected customer_id resolved to the intended customer.",
+    "The created contract was associated with the correct customer."
+  ],
+  "confirmed_by": "Andrian",
+  "confirmed_at": "2026-07-19T12:20:00+00:00",
+  "affected_component": "Contracts API",
+  "affected_endpoint": "/v1/contracts/create",
+  "customer_ids": ["customer_correct_001"],
+  "contract_ids": ["contract_correct_customer_001"],
+  "affected_sources": ["Create a contract", "List customer contracts"]
+}

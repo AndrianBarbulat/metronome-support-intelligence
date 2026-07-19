@@ -1,0 +1,28 @@
+{
+  "ticket_input_file": "data/examples/vague_ticket.json",
+  "ticket_id": 0,
+  "analysis_id": 0,
+  "resolution_status": "documentation_issue",
+  "root_cause_code": "documentation.ambiguous",
+  "root_cause_category": "documentation",
+  "root_cause_summary": "The documentation did not clearly distinguish event timestamp from ingestion time for invoice-period attribution.",
+  "root_cause_details": "Support confirmed that the customer followed the API reference but interpreted timestamp as ingestion time because the article did not explain invoice-period attribution clearly.",
+  "resolution_summary": "Clarified the behavior for the customer and proposed a documentation update.",
+  "resolution_steps": [
+    "Compared the customer interpretation with the usage ingestion documentation.",
+    "Confirmed the current behavior depends on the event timestamp.",
+    "Identified the affected documentation section."
+  ],
+  "verification_steps": [
+    "Verify the affected source describes timestamp behavior.",
+    "Verify the proposed clarification explains invoice-period attribution."
+  ],
+  "verification_results": [
+    "The affected source was identified.",
+    "The proposed clarification covers invoice-period attribution."
+  ],
+  "confirmed_by": "Andrian",
+  "confirmed_at": "2026-07-19T12:50:00+00:00",
+  "affected_component": "Usage documentation",
+  "affected_sources": ["Ingest events", "List invoices"]
+}

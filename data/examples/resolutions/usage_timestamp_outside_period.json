@@ -1,0 +1,32 @@
+{
+  "ticket_input_file": "data/examples/usage_timestamp_outside_period.json",
+  "ticket_id": 0,
+  "analysis_id": 0,
+  "resolution_status": "customer_configuration",
+  "root_cause_code": "usage.timestamp_outside_period",
+  "root_cause_category": "usage",
+  "root_cause_summary": "The event timestamp placed the accepted event outside the invoice period being inspected.",
+  "root_cause_details": "The event was accepted, but its timestamp belonged to a previous billing period, so it did not appear on the current invoice.",
+  "resolution_summary": "Corrected the event timestamp and verified invoice-period attribution.",
+  "resolution_steps": [
+    "Opened Event Search for the accepted event.",
+    "Compared the event timestamp with the invoice period.",
+    "Submitted a corrected event timestamp for the intended billing period."
+  ],
+  "verification_steps": [
+    "Use Event Search to verify the corrected timestamp.",
+    "Verify invoice usage appears in the intended invoice period."
+  ],
+  "verification_results": [
+    "Event Search showed the corrected timestamp in the intended period.",
+    "Invoice usage appeared on the intended invoice."
+  ],
+  "confirmed_by": "Andrian",
+  "confirmed_at": "2026-07-19T13:00:00+00:00",
+  "affected_component": "Usage invoicing",
+  "affected_endpoint": "/v1/ingest",
+  "affected_configuration": "invoice period",
+  "transaction_ids": ["tx-outside-period"],
+  "invoice_ids": ["invoice_current_001"],
+  "affected_sources": ["Ingest events", "List invoices"]
+}

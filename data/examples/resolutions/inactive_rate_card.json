@@ -1,0 +1,30 @@
+{
+  "ticket_input_file": "data/examples/contract_unknown_rate_card.json",
+  "ticket_id": 0,
+  "analysis_id": 0,
+  "resolution_status": "customer_configuration",
+  "root_cause_code": "rate_card.inactive",
+  "root_cause_category": "rate_card",
+  "root_cause_summary": "The contract referenced a rate card that was not active for the requested contract start date.",
+  "root_cause_details": "The rate card ID existed, but its active period did not cover the requested starting_at timestamp.",
+  "resolution_summary": "Selected the active rate card for the contract start date and resubmitted the contract request.",
+  "resolution_steps": [
+    "Checked the rate card active period.",
+    "Compared the active period with the contract starting_at timestamp.",
+    "Updated the contract to reference an active rate card."
+  ],
+  "verification_steps": [
+    "Verify the rate card is active on the contract start date.",
+    "Verify the contract uses the active rate card."
+  ],
+  "verification_results": [
+    "The replacement rate card was active for the requested date.",
+    "The contract used the active rate card and priced successfully."
+  ],
+  "confirmed_by": "Andrian",
+  "confirmed_at": "2026-07-19T12:25:00+00:00",
+  "affected_component": "Rate cards",
+  "affected_endpoint": "/v1/contracts/create",
+  "rate_card_ids": ["rate_card_active_001"],
+  "affected_sources": ["Create a contract", "Rate cards"]
+}

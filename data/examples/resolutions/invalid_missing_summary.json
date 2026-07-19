@@ -1,0 +1,17 @@
+{
+  "ticket_input_file": "data/examples/contract_missing_field.json",
+  "ticket_id": 0,
+  "analysis_id": 0,
+  "resolution_status": "confirmed",
+  "root_cause_code": "request.missing_required_field",
+  "root_cause_category": "request",
+  "root_cause_summary": "",
+  "root_cause_details": "The request omitted starting_at.",
+  "resolution_summary": "Add starting_at to the request.",
+  "resolution_steps": ["Add starting_at."],
+  "verification_steps": ["Verify starting_at is present."],
+  "verification_results": ["The field was present."],
+  "confirmed_by": "Andrian",
+  "confirmed_at": "2026-07-19T13:05:00+00:00",
+  "affected_endpoint": "/v1/contracts/create"
+}

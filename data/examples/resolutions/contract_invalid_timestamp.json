@@ -1,0 +1,29 @@
+{
+  "ticket_input_file": "data/examples/contract_invalid_timestamp.json",
+  "ticket_id": 0,
+  "analysis_id": 0,
+  "resolution_status": "confirmed",
+  "root_cause_code": "request.invalid_timestamp",
+  "root_cause_category": "request",
+  "root_cause_summary": "The contract creation request used an invalid starting_at timestamp.",
+  "root_cause_details": "The starting_at value was not a valid ISO-8601 timestamp accepted by the contract creation endpoint.",
+  "resolution_summary": "Replaced the invalid timestamp with a valid UTC timestamp.",
+  "resolution_steps": [
+    "Inspected the starting_at value in the request body.",
+    "Converted the intended start date to a valid ISO-8601 UTC timestamp.",
+    "Submitted the corrected contract creation payload."
+  ],
+  "verification_steps": [
+    "Verify starting_at is a valid ISO-8601 timestamp.",
+    "Verify the API no longer returns the timestamp validation error."
+  ],
+  "verification_results": [
+    "The corrected starting_at value parsed as an ISO-8601 timestamp.",
+    "The timestamp validation error was no longer returned."
+  ],
+  "confirmed_by": "Andrian",
+  "confirmed_at": "2026-07-19T12:15:00+00:00",
+  "affected_component": "Contracts API",
+  "affected_endpoint": "/v1/contracts/create",
+  "affected_sources": ["Create a contract"]
+}

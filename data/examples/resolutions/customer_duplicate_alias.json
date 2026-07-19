@@ -1,0 +1,30 @@
+{
+  "ticket_input_file": "data/examples/customer_duplicate_alias.json",
+  "ticket_id": 0,
+  "analysis_id": 0,
+  "resolution_status": "confirmed",
+  "root_cause_code": "request.duplicate_identifier",
+  "root_cause_category": "request",
+  "root_cause_summary": "The customer creation request reused an ingest alias that already belonged to another customer.",
+  "root_cause_details": "The ingest_aliases array contained acme-prod, which was already associated with an existing customer.",
+  "resolution_summary": "Removed the duplicate ingest alias from the new customer and linked usage to the existing customer where appropriate.",
+  "resolution_steps": [
+    "Searched for an existing customer with ingest alias acme-prod.",
+    "Compared the existing customer with the new customer request.",
+    "Updated the customer creation request to avoid the duplicate alias."
+  ],
+  "verification_steps": [
+    "Verify the ingest alias belongs to only one customer.",
+    "Verify the corrected customer request does not reuse the alias."
+  ],
+  "verification_results": [
+    "The duplicate alias was found on an existing customer.",
+    "The corrected customer request no longer reused the alias."
+  ],
+  "confirmed_by": "Andrian",
+  "confirmed_at": "2026-07-19T12:45:00+00:00",
+  "affected_component": "Customers API",
+  "affected_endpoint": "/v1/customers/create",
+  "customer_ids": ["customer_existing_alias_001"],
+  "affected_sources": ["Create a customer"]
+}

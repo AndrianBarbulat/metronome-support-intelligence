@@ -609,6 +609,256 @@ class DocumentationRepository:
             raise
 
     # ------------------------------------------------------------------
+    # Phase 5 - Confirmed resolutions and feedback
+    # ------------------------------------------------------------------
+    def get_ticket_analysis_pair(self, ticket_id: int, analysis_id: int) -> tuple[sqlite3.Row | None, sqlite3.Row | None]:
+        conn = self._get_conn()
+        ticket = conn.execute(
+            "SELECT * FROM support_tickets WHERE id = ?",
+            (ticket_id,),
+        ).fetchone()
+        analysis = conn.execute(
+            "SELECT * FROM support_ticket_analyses WHERE id = ?",
+            (analysis_id,),
+        ).fetchone()
+        return ticket, analysis
+
+    def get_latest_analysis_for_ticket(self, ticket_id: int) -> sqlite3.Row | None:
+        conn = self._get_conn()
+        return conn.execute(
+            """SELECT * FROM support_ticket_analyses
+               WHERE ticket_id = ?
+               ORDER BY created_at DESC, id DESC
+               LIMIT 1""",
+            (ticket_id,),
+        ).fetchone()
+
+    def persist_resolution_bundle(
+        self,
+        resolution,
+        hypothesis_outcomes,
+        regression_case,
+        feedback_items,
+    ):
+        import json
+
+        conn = self._get_conn()
+        now = self._utc_now()
+        try:
+            cur = conn.execute(
+                """INSERT INTO support_ticket_resolutions
+                   (ticket_id, analysis_id, resolution_status, root_cause_code,
+                    root_cause_category, root_cause_summary, root_cause_details,
+                    resolution_summary, resolution_steps_json,
+                    verification_steps_json, verification_results_json,
+                    affected_component, affected_endpoint,
+                    affected_configuration, confirmed_by, confirmed_at,
+                    created_at, updated_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    resolution.ticket_id,
+                    resolution.analysis_id,
+                    resolution.resolution_status,
+                    resolution.root_cause_code,
+                    resolution.root_cause_category,
+                    resolution.root_cause_summary,
+                    resolution.root_cause_details,
+                    resolution.resolution_summary,
+                    json.dumps(resolution.resolution_steps),
+                    json.dumps(resolution.verification_steps),
+                    json.dumps(resolution.verification_results),
+                    resolution.affected_component,
+                    resolution.affected_endpoint,
+                    resolution.affected_configuration,
+                    resolution.confirmed_by,
+                    resolution.confirmed_at,
+                    now,
+                    now,
+                ),
+            )
+            resolution_id = cur.lastrowid
+
+            for identifier_type, values in _resolution_identifier_pairs(resolution):
+                for value in values:
+                    conn.execute(
+                        """INSERT INTO support_resolution_identifiers
+                           (resolution_id, identifier_type, identifier_value, created_at)
+                           VALUES (?, ?, ?, ?)""",
+                        (resolution_id, identifier_type, value, now),
+                    )
+
+            for outcome in hypothesis_outcomes:
+                conn.execute(
+                    """INSERT INTO support_hypothesis_outcomes
+                       (resolution_id, hypothesis_code, outcome, explanation, created_at)
+                       VALUES (?, ?, ?, ?, ?)""",
+                    (
+                        resolution_id,
+                        outcome.hypothesis_code,
+                        outcome.outcome,
+                        outcome.explanation,
+                        now,
+                    ),
+                )
+
+            regression_id = None
+            if regression_case is not None:
+                cur = conn.execute(
+                    """INSERT INTO support_regression_cases
+                       (resolution_id, case_code, title, scenario,
+                        preconditions_json, input_json, expected_behavior_json,
+                        failure_signature_json, verification_json,
+                        automation_status, created_at, updated_at)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    (
+                        resolution_id,
+                        regression_case.case_code,
+                        regression_case.title,
+                        regression_case.scenario,
+                        json.dumps(regression_case.preconditions, default=str),
+                        json.dumps(regression_case.input, default=str),
+                        json.dumps(regression_case.expected_behavior, default=str),
+                        json.dumps(regression_case.failure_signature, default=str),
+                        json.dumps(regression_case.verification, default=str),
+                        regression_case.automation_status,
+                        now,
+                        now,
+                    ),
+                )
+                regression_id = cur.lastrowid
+                regression_case.id = regression_id
+                regression_case.resolution_id = resolution_id
+
+            feedback_ids: list[int] = []
+            for item in feedback_items:
+                cur = conn.execute(
+                    """INSERT INTO support_feedback_items
+                       (resolution_id, feedback_type, gap_code, title, summary,
+                        evidence_json, affected_sources_json, proposed_change_json,
+                        priority, status, owner, created_at, updated_at)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    (
+                        resolution_id,
+                        item.feedback_type,
+                        item.gap_code,
+                        item.title,
+                        item.summary,
+                        json.dumps(item.evidence, default=str),
+                        json.dumps(item.affected_sources, default=str),
+                        json.dumps(item.proposed_change, default=str),
+                        item.priority,
+                        item.status,
+                        item.owner,
+                        now,
+                        now,
+                    ),
+                )
+                item.id = cur.lastrowid
+                item.resolution_id = resolution_id
+                feedback_ids.append(item.id)
+
+            conn.commit()
+            return resolution_id, regression_id, feedback_ids
+        except Exception:
+            conn.rollback()
+            raise
+
+    def get_resolution(self, resolution_id: int) -> sqlite3.Row | None:
+        conn = self._get_conn()
+        return conn.execute(
+            "SELECT * FROM support_ticket_resolutions WHERE id = ?",
+            (resolution_id,),
+        ).fetchone()
+
+    def get_resolution_for_ticket(self, ticket_id: int) -> sqlite3.Row | None:
+        conn = self._get_conn()
+        return conn.execute(
+            """SELECT * FROM support_ticket_resolutions
+               WHERE ticket_id = ?
+               ORDER BY created_at DESC, id DESC
+               LIMIT 1""",
+            (ticket_id,),
+        ).fetchone()
+
+    def get_resolution_details_for_ticket(self, ticket_id: int) -> dict[str, list[sqlite3.Row] | sqlite3.Row | None]:
+        conn = self._get_conn()
+        resolution = self.get_resolution_for_ticket(ticket_id)
+        if resolution is None:
+            return {"resolution": None, "outcomes": [], "regression_cases": [], "feedback_items": []}
+        rid = resolution["id"]
+        return {
+            "resolution": resolution,
+            "outcomes": conn.execute(
+                "SELECT * FROM support_hypothesis_outcomes WHERE resolution_id = ? ORDER BY id",
+                (rid,),
+            ).fetchall(),
+            "regression_cases": conn.execute(
+                "SELECT * FROM support_regression_cases WHERE resolution_id = ? ORDER BY id",
+                (rid,),
+            ).fetchall(),
+            "feedback_items": conn.execute(
+                "SELECT * FROM support_feedback_items WHERE resolution_id = ? ORDER BY id",
+                (rid,),
+            ).fetchall(),
+        }
+
+    def get_feedback_item(self, feedback_id: int) -> sqlite3.Row | None:
+        conn = self._get_conn()
+        return conn.execute(
+            "SELECT * FROM support_feedback_items WHERE id = ?",
+            (feedback_id,),
+        ).fetchone()
+
+    def list_feedback_items(
+        self,
+        feedback_type: str | None = None,
+        status: str | None = None,
+        priority: str | None = None,
+        gap_code: str | None = None,
+        owner: str | None = None,
+    ) -> list[sqlite3.Row]:
+        conn = self._get_conn()
+        clauses: list[str] = []
+        params: list[str] = []
+        for column, value in [
+            ("feedback_type", feedback_type),
+            ("status", status),
+            ("priority", priority),
+            ("gap_code", gap_code),
+            ("owner", owner),
+        ]:
+            if value:
+                clauses.append(f"{column} = ?")
+                params.append(value)
+        where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
+        return conn.execute(
+            f"SELECT * FROM support_feedback_items {where} ORDER BY created_at DESC, id DESC",
+            params,
+        ).fetchall()
+
+    def update_feedback_item_status(
+        self,
+        feedback_id: int,
+        status: str,
+        reviewer: str,
+        notes: str | None,
+    ) -> sqlite3.Row:
+        conn = self._get_conn()
+        now = self._utc_now()
+        conn.execute(
+            """UPDATE support_feedback_items
+               SET status = ?, reviewed_at = ?, reviewed_by = ?,
+                   review_notes = ?, updated_at = ?
+               WHERE id = ?""",
+            (status, now, reviewer, notes, now, feedback_id),
+        )
+        conn.commit()
+        row = self.get_feedback_item(feedback_id)
+        if row is None:
+            raise ValueError(f"Feedback item not found: {feedback_id}")
+        return row
+
+    # ------------------------------------------------------------------
     # Helpers
     # ------------------------------------------------------------------
     @staticmethod
@@ -657,6 +907,18 @@ def _dataclass_to_dict(obj):
         else:
             result[f.name] = value
     return result
+
+
+def _resolution_identifier_pairs(resolution) -> list[tuple[str, list[str]]]:
+    return [
+        ("request_id", resolution.request_ids),
+        ("transaction_id", resolution.transaction_ids),
+        ("customer_id", resolution.customer_ids),
+        ("contract_id", resolution.contract_ids),
+        ("billable_metric_id", resolution.billable_metric_ids),
+        ("invoice_id", resolution.invoice_ids),
+        ("rate_card_id", resolution.rate_card_ids),
+    ]
 
 
 def _execute_fts_search(
