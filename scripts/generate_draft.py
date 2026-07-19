@@ -14,6 +14,7 @@ _PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(_PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT))
 
+from src.drafting.config import load_config  # loads .env before provider access
 from src.drafting.service import generate_grounded_draft, review_generated_draft
 from src.drafting.providers.mock import MockDraftingProvider
 from src.drafting.models import SUPPORTED_DRAFT_TYPES

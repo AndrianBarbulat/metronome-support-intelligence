@@ -20,6 +20,7 @@ _PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(_PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT))
 
+from src.drafting.config import load_config  # loads .env before provider access
 from src.drafting.providers.gemini import GeminiDraftingProvider
 from src.drafting.providers.errors import DraftingProviderError
 from src.drafting.prompts import build_system_instruction, get_prompt_version
@@ -144,6 +145,29 @@ def main() -> None:
         tone="professional",
         required_sections=grounding["required_sections"],
     )
+    # Register synthetic facts in the package for validation
+    from src.drafting.models import GroundingFact
+    pkg.observed_facts.append(GroundingFact(
+        fact_code="response.status.present",
+        statement="The ingestion endpoint returned HTTP 200 for event ID evt_abc123.",
+        fact_type="ticket_observation",
+        evidence_reference="smoke_test",
+        confirmation_status="observed",
+    ))
+    pkg.hypotheses.append(GroundingFact(
+        fact_code="hyp.property_mismatch",
+        statement="The submitted property name may not match the billable metric configuration.",
+        fact_type="hypothesis",
+        evidence_reference="smoke_test",
+        confirmation_status="unconfirmed",
+    ))
+    pkg.missing_evidence.append(GroundingFact(
+        fact_code="missing.metric_config",
+        statement="Billable metric property configuration for the customer.",
+        fact_type="missing_evidence",
+        evidence_reference="smoke_test",
+        confirmation_status="missing",
+    ))
 
     validation = validate_draft(result, pkg)
     print(f"Valid: {validation.valid}")
