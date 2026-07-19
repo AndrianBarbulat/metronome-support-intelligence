@@ -1,0 +1,18 @@
+{
+  "external_ticket_id": "TKT-002",
+  "subject": "Contract creation fails with 400",
+  "customer_message": "Creating a contract keeps failing. Not sure what's wrong.",
+  "http_method": "POST",
+  "endpoint_path": "/v1/contracts/create",
+  "request_headers": {
+    "Authorization": "Bearer secret-token-abc123",
+    "Content-Type": "application/json"
+  },
+  "request_body": {
+    "customer_id": "550e8400-e29b-41d4-a716-446655440000"
+  },
+  "response_status": 400,
+  "response_body": {
+    "message": "Missing required field: starting_at"
+  }
+}

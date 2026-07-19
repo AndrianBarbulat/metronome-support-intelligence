@@ -1,0 +1,197 @@
+{
+  "version": "1.0.0",
+  "cases": [
+    {
+      "id": "contract-create-starting-at",
+      "query": "create contract starting_at",
+      "expected_pages": ["Create a contract"],
+      "expected_top_rank": 1,
+      "required_tokens": ["starting_at"],
+      "notes": "Exact API operation and request field"
+    },
+    {
+      "id": "contract-uniqueness-409",
+      "query": "contract uniqueness_key 409",
+      "expected_pages": ["API idempotency", "Create a contract"],
+      "expected_top_rank": 3,
+      "required_tokens": ["uniqueness_key"],
+      "notes": "uniqueness_key is heavily discussed in idempotency docs; contracts use it too"
+    },
+    {
+      "id": "update-contract",
+      "query": "update contract",
+      "expected_pages": ["Edit a contract", "Update the contract end date", "Update invoice issue date"],
+      "expected_top_rank": 1,
+      "required_tokens": [],
+      "notes": "Contract update operations"
+    },
+    {
+      "id": "retrieve-customer-contracts",
+      "query": "retrieve customer contracts",
+      "expected_pages": ["List customer contracts (v2)", "List customer contracts (v1)"],
+      "expected_top_rank": 1,
+      "required_tokens": [],
+      "notes": "Retrieve customer contracts"
+    },
+    {
+      "id": "usage-event-transaction-id",
+      "query": "usage event transaction_id",
+      "expected_pages": ["Send usage events", "Ingest events", "Search events"],
+      "expected_top_rank": 1,
+      "required_tokens": ["transaction_id"],
+      "notes": "Usage event with transaction_id"
+    },
+    {
+      "id": "ingest-endpoint",
+      "query": "POST /v1/ingest",
+      "expected_pages": ["Ingest events"],
+      "expected_top_rank": 1,
+      "required_tokens": [],
+      "notes": "Exact endpoint match"
+    },
+    {
+      "id": "duplicate-usage-event",
+      "query": "duplicate usage event",
+      "expected_pages": ["Send usage events", "Usage events at scale", "Search events"],
+      "expected_top_rank": 3,
+      "required_tokens": [],
+      "notes": "Usage event deduplication — scale article covers dedup heavily"
+    },
+    {
+      "id": "event_type properties",
+      "query": "event_type properties",
+      "expected_pages": ["Design usage events", "Send usage events", "Create a billable metric"],
+      "expected_top_rank": 3,
+      "required_tokens": ["event_type"],
+      "notes": "Event type and properties"
+    },
+    {
+      "id": "search-usage-events",
+      "query": "search usage events",
+      "expected_pages": ["Search events"],
+      "expected_top_rank": 1,
+      "required_tokens": [],
+      "notes": "Search usage events endpoint"
+    },
+    {
+      "id": "create-customer-ingest",
+      "query": "create customer ingest_aliases",
+      "expected_pages": ["Create a customer", "Create or update customer ingest aliases"],
+      "expected_top_rank": 1,
+      "required_tokens": ["ingest_aliases"],
+      "notes": "Create customer with ingest aliases"
+    },
+    {
+      "id": "archive-customer",
+      "query": "archive customer",
+      "expected_pages": ["Archive a customer"],
+      "expected_top_rank": 1,
+      "required_tokens": [],
+      "notes": "Archive customer endpoint"
+    },
+    {
+      "id": "get-customer",
+      "query": "get customer",
+      "expected_pages": ["Get a customer"],
+      "expected_top_rank": 1,
+      "required_tokens": [],
+      "notes": "Get customer endpoint"
+    },
+    {
+      "id": "customer-external-id",
+      "query": "customer external_id",
+      "expected_pages": ["Create a customer", "Get a customer"],
+      "expected_top_rank": 1,
+      "required_tokens": [],
+      "notes": "Customer with external identifier"
+    },
+    {
+      "id": "create-threshold-billable-metric",
+      "query": "create threshold notification billable_metric_id",
+      "expected_pages": ["Create a threshold notification"],
+      "expected_top_rank": 1,
+      "required_tokens": ["billable_metric_id"],
+      "notes": "Threshold notification with billable metric"
+    },
+    {
+      "id": "evaluate-on-create",
+      "query": "evaluate_on_create",
+      "expected_pages": ["Create a threshold notification"],
+      "expected_top_rank": 1,
+      "required_tokens": ["evaluate_on_create"],
+      "notes": "Evaluate on create field"
+    },
+    {
+      "id": "threshold-uniqueness",
+      "query": "threshold notification uniqueness_key",
+      "expected_pages": ["Create a threshold notification", "Archive a threshold notification", "Reset a threshold notification"],
+      "expected_top_rank": 1,
+      "required_tokens": ["uniqueness_key"],
+      "notes": "Threshold notification uniqueness"
+    },
+    {
+      "id": "archive-threshold-release",
+      "query": "archive threshold notification release_uniqueness_key",
+      "expected_pages": ["Archive a threshold notification"],
+      "expected_top_rank": 1,
+      "required_tokens": ["release_uniqueness_key"],
+      "notes": "Archive threshold with release"
+    },
+    {
+      "id": "api-auth-bearer",
+      "query": "API authentication bearer",
+      "expected_pages": ["API Authentication"],
+      "expected_top_rank": 1,
+      "required_tokens": [],
+      "notes": "API authentication bearer token"
+    },
+    {
+      "id": "rate-limit-429",
+      "query": "rate limit 429",
+      "expected_pages": ["API status codes"],
+      "expected_top_rank": 1,
+      "required_tokens": ["429"],
+      "notes": "Rate limiting and 429 status code"
+    },
+    {
+      "id": "api-idempotency",
+      "query": "API idempotency",
+      "expected_pages": ["API idempotency"],
+      "expected_top_rank": 1,
+      "required_tokens": [],
+      "notes": "API idempotency documentation"
+    },
+    {
+      "id": "request-id",
+      "query": "idempotency key header",
+      "expected_pages": ["API idempotency"],
+      "expected_top_rank": 1,
+      "required_tokens": [],
+      "notes": "Idempotency key header discussed in idempotency docs"
+    },
+    {
+      "id": "create-billable-metric",
+      "query": "create billable metric",
+      "expected_pages": ["Create a billable metric"],
+      "expected_top_rank": 1,
+      "required_tokens": [],
+      "notes": "Create billable metric endpoint"
+    },
+    {
+      "id": "list-invoices",
+      "query": "list invoices customer",
+      "expected_pages": ["List invoices"],
+      "expected_top_rank": 1,
+      "required_tokens": [],
+      "notes": "List invoices for a customer"
+    },
+    {
+      "id": "audit-logs",
+      "query": "audit logs",
+      "expected_pages": ["Audit logs", "Get audit logs"],
+      "expected_top_rank": 1,
+      "required_tokens": [],
+      "notes": "Audit logs — both the guide and API reference are valid"
+    }
+  ]
+}

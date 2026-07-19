@@ -1,0 +1,18 @@
+{
+  "external_ticket_id": "TKT-006",
+  "subject": "Duplicate transaction_id causes event rejection",
+  "customer_message": "We accidentally resubmitted the same event and got a 409.",
+  "http_method": "POST",
+  "endpoint_path": "/v1/ingest",
+  "request_body": {
+    "transaction_id": "tx-99999",
+    "customer_id": "alias-cust",
+    "event_type": "api_call",
+    "properties": {"count": 10},
+    "timestamp": "2026-07-19T11:00:00Z"
+  },
+  "response_status": 409,
+  "response_body": {
+    "message": "Duplicate transaction_id"
+  }
+}

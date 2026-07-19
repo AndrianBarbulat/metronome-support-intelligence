@@ -1,0 +1,21 @@
+{
+  "external_ticket_id": "TKT-001",
+  "subject": "Contract creation returns 409",
+  "customer_message": "We cannot create a contract for a new customer. Getting 409 Conflict.",
+  "http_method": "POST",
+  "endpoint_path": "/v1/contracts/create",
+  "request_headers": {
+    "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U",
+    "Content-Type": "application/json"
+  },
+  "request_body": {
+    "customer_id": "4db51251-61de-4bfe-b9ce-495e244f3491",
+    "starting_at": "2026-08-01T00:00:00Z",
+    "uniqueness_key": "enterprise-contract-001"
+  },
+  "response_status": 409,
+  "response_body": {
+    "message": "A record with this uniqueness key already exists",
+    "code": 409
+  }
+}

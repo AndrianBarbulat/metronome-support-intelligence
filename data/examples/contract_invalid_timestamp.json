@@ -1,0 +1,15 @@
+{
+  "external_ticket_id": "TKT-005",
+  "subject": "Contract creation fails with timestamp error",
+  "customer_message": "We sent starting_at as 'next month' and the API rejected it.",
+  "http_method": "POST",
+  "endpoint_path": "/v1/contracts/create",
+  "request_body": {
+    "customer_id": "abc-123",
+    "starting_at": "next month"
+  },
+  "response_status": 400,
+  "response_body": {
+    "message": "starting_at must be an ISO-8601 timestamp"
+  }
+}

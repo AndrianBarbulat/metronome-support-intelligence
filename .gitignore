@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+.pytest_cache/
+
+# Virtual environment
+.venv/
+
+# Environment
+.env
+.env.*
+
+# IDE
+.vscode/
+
+# Agent scratch
+.agents/
+.superpowers/
+
+# Database
+data/metronome_docs.db
+data/metronome_docs.db-shm
+data/metronome_docs.db-wal
+
+# CSV output (generated)
+data/parsed/documentation_index.csv
+data/output/

@@ -1,0 +1,8 @@
+{
+  "external_ticket_id": "TKT-012",
+  "subject": "API is not working",
+  "customer_message": "The API is broken. Nothing works. Please fix it immediately.",
+  "request_headers": {
+    "Authorization": "Bearer some-long-secret-token-value-here"
+  }
+}

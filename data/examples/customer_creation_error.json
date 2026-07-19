@@ -1,0 +1,21 @@
+{
+  "external_ticket_id": "TKT-004",
+  "subject": "Cannot create a customer",
+  "customer_message": "Attempting to create a new customer but the API returns an error.",
+  "http_method": "POST",
+  "endpoint_path": "/v1/customers/create",
+  "request_headers": {
+    "Authorization": "Bearer valid-token",
+    "Content-Type": "application/json"
+  },
+  "request_body": {
+    "ingest_aliases": ["my-alias"],
+    "external_id": "ext-789"
+  },
+  "response_status": 400,
+  "response_body": {
+    "message": "Missing required field: name"
+  },
+  "expected_behavior": "Customer should be created successfully.",
+  "actual_behavior": "API returns 400 Bad Request."
+}

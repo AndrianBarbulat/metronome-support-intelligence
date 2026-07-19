@@ -1,0 +1,20 @@
+{
+  "external_ticket_id": "TKT-003",
+  "subject": "Usage events accepted but not reflected in invoice",
+  "customer_message": "We are sending usage events successfully (200 OK) but the invoice shows zero usage.",
+  "http_method": "POST",
+  "endpoint_path": "/v1/ingest",
+  "request_body": {
+    "transaction_id": "tx-12345",
+    "customer_id": "ingest-alias-abc",
+    "event_type": "compute",
+    "properties": {"region": "us-east-1", "quantity": 100},
+    "timestamp": "2026-07-19T10:00:00Z"
+  },
+  "response_status": 200,
+  "response_body": {
+    "status": "accepted"
+  },
+  "expected_behavior": "Usage should appear in the next invoice.",
+  "actual_behavior": "Invoice shows zero usage for the billing period."
+}
