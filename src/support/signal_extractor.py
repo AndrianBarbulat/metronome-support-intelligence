@@ -27,13 +27,23 @@ _AREA_MAP: dict[str, str] = {
     "/packages": "packages",
 }
 
+
+_AREA_KEYWORDS: list[tuple[tuple[str, ...], str]] = [
+    (("usage event", "usage events", "ai_usage", "event_type", "billable metric", "transaction_id", "ingestion", "ingest", "not billed", "no charge"), "usage"),
+    (("contract", "uniqueness_key", "rate card"), "contracts"),
+    (("customer", "ingest alias", "external_id"), "customers"),
+    (("invoice", "line item", "billing period"), "invoices"),
+    (("alert", "threshold"), "alerts"),
+]
+
 _VERB_MAP: dict[str, str] = {
     "create": "create", "add": "create", "provision": "create",
     "get": "get", "retrieve": "get", "fetch": "get",
     "list": "list",
     "update": "update", "edit": "update", "modify": "update",
     "archive": "archive", "delete": "archive", "remove": "archive",
-    "ingest": "ingest", "send": "ingest",
+    "ingest": "ingest", "send": "ingest", "sent": "ingest",
+    "submit": "ingest", "submitted": "ingest", "accepted": "ingest",
     "search": "search",
 }
 
@@ -101,11 +111,17 @@ def extract_signals(ticket: SupportTicketInput) -> ExtractedTicketSignals:
     # Timestamps
     timestamps = _TIMESTAMP_RE.findall(all_text)
 
-    # Product area
+    # Product area: endpoint is strongest, then explicit natural-language terms.
     product_area = None
     if endpoint_path:
         for prefix, area in _AREA_MAP.items():
             if prefix in endpoint_path:
+                product_area = area
+                break
+    if product_area is None:
+        lowered = all_text.lower()
+        for keywords, area in _AREA_KEYWORDS:
+            if any(keyword in lowered for keyword in keywords):
                 product_area = area
                 break
 

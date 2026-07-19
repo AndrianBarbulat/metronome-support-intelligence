@@ -185,7 +185,73 @@ def _build_body_from_facts(input_data: dict[str, object]) -> str:
     draft_type = input_data.get("draft_type", "customer_update")
     parts: list[str] = []
 
-    if draft_type == "customer_update":
+    if draft_type == "support_answer":
+        observed = input_data.get("observed_facts", [])
+        documented = input_data.get("documentation_facts", [])
+        confirmed = input_data.get("confirmed_facts", [])
+        hypotheses = input_data.get("hypotheses", [])
+        missing = input_data.get("missing_evidence", [])
+
+        parts.append("## Direct Answer")
+        if hypotheses:
+            parts.append(
+                "The available evidence points to a possible configuration or matching issue, "
+                "but the root cause still requires verification."
+            )
+        elif observed or documented:
+            parts.append("The available evidence and documentation are summarized below.")
+        else:
+            parts.append("There is not enough evidence yet to provide a reliable technical conclusion.")
+
+        parts.append("")
+        parts.append("## What the Evidence Shows")
+        for fact in observed[:6]:
+            parts.append(f"- Observed: {fact.get('statement', fact.get('fact_code', ''))}")
+        for fact in documented[:6]:
+            parts.append(f"- Documented: {fact.get('statement', fact.get('fact_code', ''))}")
+
+        parts.append("")
+        parts.append("## What Remains Unconfirmed")
+        if hypotheses:
+            for fact in hypotheses:
+                parts.append(
+                    f"- Possible: {fact.get('statement', fact.get('fact_code', ''))} "
+                    "This requires verification."
+                )
+        else:
+            parts.append("- No specific root-cause hypothesis is supported yet.")
+        for fact in missing:
+            parts.append(f"- Missing: {fact.get('statement', fact.get('fact_code', ''))}")
+
+        parts.append("")
+        parts.append("## Recommended Checks")
+        steps = [f for f in confirmed if f.get("fact_type") == "investigation_step"]
+        for fact in steps[:10]:
+            parts.append(f"- {fact.get('statement', fact.get('fact_code', ''))}")
+        if not steps:
+            parts.append("- Collect the missing evidence before confirming a root cause.")
+
+        parts.append("")
+        parts.append("## Customer Communication")
+        parts.append(
+            "We reviewed the issue and confirmed the observations listed above. "
+            "A possible cause is still being verified, and the recommended checks will determine the next action."
+        )
+
+        parts.append("")
+        parts.append("## Internal Escalation")
+        parts.append(
+            "Escalate only after the recommended checks are complete and include the observed evidence, "
+            "missing evidence, mapped concepts, and documentation sources."
+        )
+
+        parts.append("")
+        parts.append("## Sources")
+        for source in input_data.get("documentation_sources", []):
+            if isinstance(source, dict) and source.get("source_url"):
+                parts.append(f"- {source['source_url']}")
+
+    elif draft_type == "customer_update":
         parts.append("We have reviewed your ticket and completed the initial investigation.")
         parts.append("")
         confirmed = input_data.get("confirmed_facts", [])

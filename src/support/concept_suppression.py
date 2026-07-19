@@ -88,14 +88,19 @@ def evaluate_evidence_state(
 
     # Usage-specific
     if signals.product_area == "usage":
-        if signals.http_method == "POST":
+        if signals.http_method == "POST" or signals.probable_operation == "ingest":
             flags.add("scenario.usage_ingestion")
         if "transaction_id" in signals.request_fields:
             flags.add("transaction_id_present")
-        if ticket.response_status == 200 and (
-            _text_contains(ticket.actual_behavior, ["not billed", "invoice", "zero", "not reflected"])
-            or _text_contains(ticket.customer_message, ["not billed", "invoice", "zero", "not reflected"])
-        ):
+        accepted_or_successful = ticket.response_status == 200 or _text_contains(
+            " ".join([ticket.customer_message, ticket.actual_behavior or ""]),
+            ["accepted", "successful", "succeeded", "200"],
+        )
+        not_billed = (
+            _text_contains(ticket.actual_behavior, ["not billed", "invoice", "zero", "not reflected", "no charge"])
+            or _text_contains(ticket.customer_message, ["not billed", "invoice", "zero", "not reflected", "no charge"])
+        )
+        if accepted_or_successful and not_billed:
             flags.add("usage_accepted_not_billed")
         if ticket.response_status == 409 or _response_mentions(ticket, "duplicate"):
             flags.add("usage_duplicate_transaction")

@@ -48,6 +48,13 @@ def _keyword_match(body_lower: str, section_lower: str, draft_type: str) -> bool
     """Use keyword-based fallback matching for common sections."""
     # Map sections to keywords that indicate coverage
     keyword_map: dict[str, str] = {
+        "direct answer": "answer",
+        "what the evidence shows": "evidence",
+        "what remains unconfirmed": "unconfirmed",
+        "recommended checks": "check",
+        "customer communication": "customer",
+        "internal escalation": "escalation",
+        "sources": "http",
         "acknowledgement": "thank you for",
         "confirmed findings": "confirmed",
         "confirmed root cause": "root cause",

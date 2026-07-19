@@ -3,7 +3,12 @@
 from __future__ import annotations
 
 from pathlib import Path
+
 from src.database.repository import DocumentationRepository
+
+
+def _normalize_url(url: str) -> str:
+    return url.strip().rstrip("/")
 
 
 def validate_documentation_sources(
@@ -11,50 +16,33 @@ def validate_documentation_sources(
     database_path: Path,
     allowed_sources: list[str] | None = None,
 ) -> list[str]:
-    """Return a list of error messages for invalid source URLs.
-
-    Parameters
-    ----------
-    used_source_urls:
-        URLs returned by the provider.
-    database_path:
-        Path to the documentation SQLite database.
-    allowed_sources:
-        Optional explicit allowlist. When omitted, any URL present in
-        ``documentation_pages`` is accepted.
-    """
+    """Return errors for URLs absent from the corpus or drafting context."""
     errors: list[str] = []
     repo = DocumentationRepository(database_path)
     repo.initialize_schema()
-
     try:
-        if allowed_sources is not None:
-            allowed_set = set(allowed_sources)
-        else:
-            # Build allowlist from all documentation pages
-            conn = repo._get_conn()
-            rows = conn.execute(
-                "SELECT source_url FROM documentation_pages WHERE status = 'active'"
-            ).fetchall()
-            allowed_set = {row["source_url"] for row in rows}
+        conn = repo._get_conn()
+        rows = conn.execute(
+            "SELECT source_url FROM documentation_pages WHERE status = 'active'"
+        ).fetchall()
+        corpus = {_normalize_url(str(row["source_url"])) for row in rows}
+        context = (
+            {_normalize_url(str(url)) for url in allowed_sources if str(url).strip()}
+            if allowed_sources is not None
+            else None
+        )
 
-        for url in used_source_urls:
-            normalized = url.strip().rstrip("/")
-            found = False
-            # Exact match
-            if normalized in allowed_set:
-                found = True
-            # Try with trailing slash variants
-            if not found:
-                for allowed in allowed_set:
-                    if allowed.rstrip("/") == normalized:
-                        found = True
-                        break
-            if not found:
+        for original in used_source_urls:
+            normalized = _normalize_url(str(original))
+            if normalized not in corpus:
                 errors.append(
-                    f"Source URL '{url}' is not present in the documentation corpus."
+                    f"Source URL '{original}' is not present in the documentation corpus."
                 )
-
+                continue
+            if context is not None and normalized not in context:
+                errors.append(
+                    f"Source URL '{original}' is not allowed for this drafting context."
+                )
         return errors
     finally:
         repo.close()
@@ -67,23 +55,27 @@ def get_allowed_drafting_sources(
     resolution_id: int | None = None,
     feedback_id: int | None = None,
 ) -> list[str]:
-    """Return the list of documentation URLs legitimately associated
-    with the given ticket, analysis, resolution, or feedback item."""
+    """Return documentation URLs associated with the supplied context."""
     repo = DocumentationRepository(database_path)
     repo.initialize_schema()
     try:
         conn = repo._get_conn()
         urls: set[str] = set()
 
-        # Ticket + analysis links
         if ticket_id is not None:
-            rows = conn.execute(
-                "SELECT source_url FROM support_ticket_document_links WHERE ticket_id = ?",
-                (ticket_id,),
-            ).fetchall()
-            urls.update(r["source_url"] for r in rows)
+            if analysis_id is None:
+                rows = conn.execute(
+                    "SELECT source_url FROM support_ticket_document_links WHERE ticket_id = ?",
+                    (ticket_id,),
+                ).fetchall()
+            else:
+                rows = conn.execute(
+                    """SELECT source_url FROM support_ticket_document_links
+                       WHERE ticket_id = ? AND analysis_id = ?""",
+                    (ticket_id, analysis_id),
+                ).fetchall()
+            urls.update(str(row["source_url"]) for row in rows)
 
-        # Feedback affected sources
         if feedback_id is not None:
             row = conn.execute(
                 "SELECT affected_sources_json FROM support_feedback_items WHERE id = ?",
@@ -91,8 +83,9 @@ def get_allowed_drafting_sources(
             ).fetchone()
             if row:
                 import json
+
                 affected = json.loads(row["affected_sources_json"])
-                urls.update(u for u in affected if isinstance(u, str))
+                urls.update(str(url) for url in affected if isinstance(url, str))
 
         return sorted(urls)
     finally:

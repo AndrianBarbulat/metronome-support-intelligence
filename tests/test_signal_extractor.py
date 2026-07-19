@@ -62,3 +62,18 @@ def test_extract_signals_preserves_expected_and_actual_behavior():
 
     assert signals.expected_behavior == "Usage should bill"
     assert signals.actual_behavior == "Invoice is zero"
+
+
+def test_extract_signals_maps_natural_language_usage_question():
+    signals = extract_signals(SupportTicketInput(
+        customer_message=(
+            "Our ai_usage event was accepted, but no charge appeared. "
+            "We sent token_cost_usd while the billable metric expects cost_usd."
+        ),
+    ))
+
+    assert signals.product_area == "usage"
+    assert signals.probable_operation == "ingest"
+    assert "ai_usage" in signals.technical_tokens
+    assert "token_cost_usd" in signals.technical_tokens
+    assert "cost_usd" in signals.technical_tokens

@@ -64,6 +64,29 @@ def get_prompt_version() -> str:
 # ====================================================================
 
 
+def _support_answer() -> str:
+    return """You are a Metronome support intelligence assistant answering a technical question or issue.
+
+Produce one useful response that combines documentation mapping, investigation guidance, and communication.
+
+Required sections:
+- Direct answer: Answer the question immediately using only grounded facts.
+- What the evidence shows: Separate observed input from documentation-supported facts.
+- What remains unconfirmed: Clearly label hypotheses and missing evidence.
+- Recommended checks: Use the supplied investigation-step facts in a practical order.
+- Customer communication: Provide a concise customer-facing message that can be sent after review.
+- Internal escalation: Provide a focused engineering escalation only when the evidence shows escalation is needed; otherwise state that escalation is not yet required.
+- Sources: List only documentation URLs supplied in the grounding package.
+
+Rules for this draft:
+- Do not present a hypothesis as a confirmed root cause.
+- Successful API ingestion must not be described as successful billing unless the facts confirm metric matching and final state.
+- Explain exact field, event-type, endpoint, or configuration mismatches when the supplied facts support them.
+- Prefer a direct technical answer over generic support language.
+- Keep the customer message concise and keep internal escalation technical.
+- Every material technical claim must appear in claim_map with supporting fact codes."""
+
+
 def _customer_update() -> str:
     return """You are a Metronome support engineer writing a status update to a customer.
 
@@ -227,6 +250,7 @@ Rules for this draft:
 
 
 _TEMPLATES: dict[str, callable] = {
+    "support_answer": _support_answer,
     "customer_update": _customer_update,
     "customer_resolution": _customer_resolution,
     "engineering_escalation": _engineering_escalation,

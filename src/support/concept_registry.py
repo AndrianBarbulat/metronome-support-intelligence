@@ -186,7 +186,9 @@ def _trigger_matches(
     if trigger == "scenario.contract_creation":
         return signals.product_area == "contracts" and signals.http_method == "POST"
     if trigger == "scenario.usage_ingestion":
-        return signals.product_area == "usage" and signals.http_method == "POST"
+        return signals.product_area == "usage" and (
+            signals.http_method == "POST" or signals.probable_operation == "ingest"
+        )
     if trigger == "scenario.customer_creation":
         return signals.product_area == "customers" and signals.http_method == "POST"
 

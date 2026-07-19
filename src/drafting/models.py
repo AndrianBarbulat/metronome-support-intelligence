@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 # Stable draft types
 # ---------------------------------------------------------------------------
 SUPPORTED_DRAFT_TYPES = {
+    "support_answer",
     "customer_update",
     "customer_resolution",
     "engineering_escalation",
@@ -29,6 +30,7 @@ DRAFT_AUDIENCES = {
 }
 
 AUDIENCE_FOR_DRAFT_TYPE: dict[str, str] = {
+    "support_answer": "internal",
     "customer_update": "customer",
     "customer_resolution": "customer",
     "engineering_escalation": "engineering",
@@ -67,6 +69,8 @@ DRAFT_DECISIONS = {
 # ---------------------------------------------------------------------------
 GROUNDING_FACT_TYPES = {
     "ticket_observation",
+    "mapped_concept",
+    "investigation_step",
     "request_evidence",
     "response_evidence",
     "validation_finding",
@@ -172,6 +176,7 @@ class GeneratedDraft:
 
     used_fact_codes: list[str] = field(default_factory=list)
     used_source_urls: list[str] = field(default_factory=list)
+    claim_map: list[dict[str, object]] = field(default_factory=list)
 
     provider: str = ""
     model: str = ""

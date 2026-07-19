@@ -136,7 +136,9 @@ def analyze_support_ticket(
         repo = DocumentationRepository(database_path)
         try:
             repo.initialize_schema()
-            repo.persist_ticket_analysis(ticket=st, report=report, analyzer_version=analyzer_version)
+            report.ticket_id = repo.persist_ticket_analysis(
+                ticket=st, report=report, analyzer_version=analyzer_version
+            )
         finally:
             repo.close()
 

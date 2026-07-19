@@ -19,6 +19,15 @@ from src.drafting.models import (
 # Required sections per draft type
 # ---------------------------------------------------------------------------
 _REQUIRED_SECTIONS: dict[str, list[str]] = {
+    "support_answer": [
+        "Direct answer",
+        "What the evidence shows",
+        "What remains unconfirmed",
+        "Recommended checks",
+        "Customer communication",
+        "Internal escalation",
+        "Sources",
+    ],
     "customer_update": [
         "Acknowledgement",
         "Confirmed findings",
