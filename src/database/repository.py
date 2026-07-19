@@ -34,6 +34,7 @@ class DocumentationRepository:
     def initialize_schema(self) -> None:
         conn = self._get_conn()
         conn.executescript(SCHEMA_SQL)
+        self._ensure_phase44_columns(conn)
         conn.commit()
 
     # ------------------------------------------------------------------
@@ -557,9 +558,11 @@ class DocumentationRepository:
                    (ticket_id, analyzer_version, summary, signals_json,
                     observations_json, validation_findings_json,
                     hypotheses_json, missing_evidence_json,
-                    investigation_steps_json, retrieval_query,
+                    investigation_steps_json, candidate_concepts_json,
+                    selected_concepts_json, concept_decisions_json,
+                    merged_concept_groups_json, retrieval_query,
                     retrieval_confidence, created_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                 (
                     ticket_id, analyzer_version, report.summary,
                     json.dumps(_dataclass_to_dict(report.signals), default=str),
@@ -568,6 +571,10 @@ class DocumentationRepository:
                     json.dumps([_dataclass_to_dict(h) for h in report.hypotheses], default=str),
                     json.dumps([_dataclass_to_dict(m) for m in report.missing_evidence], default=str),
                     json.dumps([_dataclass_to_dict(s) for s in report.investigation_steps], default=str),
+                    json.dumps(report.candidate_concept_codes),
+                    json.dumps(report.selected_concept_codes),
+                    json.dumps([_dataclass_to_dict(d) for d in report.concept_decisions], default=str),
+                    json.dumps([_dataclass_to_dict(g) for g in report.merged_concept_groups], default=str),
                     report.retrieval_query,
                     report.retrieval_confidence,
                     now,
@@ -581,13 +588,16 @@ class DocumentationRepository:
                     """INSERT INTO support_ticket_document_links
                        (ticket_id, analysis_id, page_title, source_url, heading,
                         relevance_score, matched_tokens_json, ranking_reasons_json,
+                        source_capabilities_json, source_purposes_json,
                         usage_type, created_at)
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                     (
                         ticket_id, analysis_id, source.page_title, source.source_url,
                         source.heading, source.relevance_score,
                         json.dumps(source.matched_tokens),
                         json.dumps(source.ranking_reasons),
+                        json.dumps(source.source_capabilities),
+                        json.dumps(source.source_purposes),
                         source.usage_type, now,
                     ),
                 )
@@ -605,6 +615,31 @@ class DocumentationRepository:
     def _utc_now() -> str:
         from datetime import datetime, timezone
         return datetime.now(timezone.utc).isoformat()
+
+    def _ensure_phase44_columns(self, conn: sqlite3.Connection) -> None:
+        self._ensure_columns(conn, "support_ticket_analyses", {
+            "candidate_concepts_json": "TEXT NOT NULL DEFAULT '[]'",
+            "selected_concepts_json": "TEXT NOT NULL DEFAULT '[]'",
+            "concept_decisions_json": "TEXT NOT NULL DEFAULT '[]'",
+            "merged_concept_groups_json": "TEXT NOT NULL DEFAULT '[]'",
+        })
+        self._ensure_columns(conn, "support_ticket_document_links", {
+            "source_capabilities_json": "TEXT NOT NULL DEFAULT '[]'",
+            "source_purposes_json": "TEXT NOT NULL DEFAULT '[]'",
+        })
+
+    @staticmethod
+    def _ensure_columns(
+        conn: sqlite3.Connection,
+        table_name: str,
+        columns: dict[str, str],
+    ) -> None:
+        existing = {
+            row["name"] for row in conn.execute(f"PRAGMA table_info({table_name})").fetchall()
+        }
+        for column_name, definition in columns.items():
+            if column_name not in existing:
+                conn.execute(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {definition}")
 
 
 def _dataclass_to_dict(obj):

@@ -1,0 +1,17 @@
+{
+  "external_ticket_id": "TKT-015",
+  "subject": "Usage accepted but aggregation key is absent",
+  "customer_message": "The event is accepted but the metric with aggregation does not bill.",
+  "http_method": "POST",
+  "endpoint_path": "/v1/ingest",
+  "request_body": {
+    "transaction_id": "tx-missing-aggregation",
+    "customer_id": "alias-cust",
+    "event_type": "compute",
+    "properties": {"region": "us-east-1"},
+    "timestamp": "2026-07-19T10:00:00Z"
+  },
+  "response_status": 200,
+  "response_body": {"status": "accepted"},
+  "actual_behavior": "The invoice does not reflect the accepted event."
+}

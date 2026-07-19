@@ -1,0 +1,16 @@
+{
+  "external_ticket_id": "TKT-010",
+  "subject": "Contract retry got 409 and we are not sure if it is the same operation",
+  "customer_message": "A contract create retry returned 409. We may have changed pricing before retrying with the same uniqueness_key.",
+  "http_method": "POST",
+  "endpoint_path": "/v1/contracts/create",
+  "request_body": {
+    "customer_id": "cust_123",
+    "starting_at": "2026-08-01T00:00:00Z",
+    "uniqueness_key": "enterprise-contract-ambiguous"
+  },
+  "response_status": 409,
+  "response_body": {
+    "message": "A record with this uniqueness key already exists"
+  }
+}

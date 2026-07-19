@@ -46,6 +46,13 @@ def build_observations(
             ))
 
     # Request fields
+    if ticket.request_body is not None:
+        obs.append(InvestigationObservation(
+            statement="Request body was provided.",
+            evidence_type="request",
+            evidence_reference="request_body",
+            observation_code="request.body.present",
+        ))
     for f in signals.request_fields:
         obs.append(InvestigationObservation(
             statement=f"Request contains field: {f}.",
@@ -70,7 +77,13 @@ def build_observations(
             observation_code="response.status.absent",
         ))
 
-    if ticket.response_body:
+    if ticket.response_body is not None:
+        obs.append(InvestigationObservation(
+            statement="Response body was provided.",
+            evidence_type="response",
+            evidence_reference="response_body",
+            observation_code="response.body.present",
+        ))
         if isinstance(ticket.response_body, dict) and "message" in ticket.response_body:
             m = str(ticket.response_body["message"])[:200]
             obs.append(InvestigationObservation(
@@ -78,13 +91,6 @@ def build_observations(
                 evidence_type="response",
                 evidence_reference="response_body.message",
                 observation_code="response.message.present",
-            ))
-        else:
-            obs.append(InvestigationObservation(
-                statement="Response body was provided.",
-                evidence_type="response",
-                evidence_reference="response_body",
-                observation_code="response.body.present",
             ))
     else:
         obs.append(InvestigationObservation(
@@ -129,6 +135,21 @@ def build_observations(
                 evidence_type="documentation",
                 evidence_reference="search_results.primary",
                 observation_code="documentation.primary.present",
+            ))
+        for source in documentation_sources:
+            for capability in source.source_capabilities:
+                obs.append(InvestigationObservation(
+                    statement=f"Documentation capability retrieved: {capability}.",
+                    evidence_type="documentation",
+                    evidence_reference=source.source_url,
+                    observation_code=f"documentation.capability.{capability}",
+                ))
+        if any("idempotency" in s.source_capabilities for s in documentation_sources):
+            obs.append(InvestigationObservation(
+                statement="Documentation describes idempotency or uniqueness-key behavior.",
+                evidence_type="documentation",
+                evidence_reference="search_results.idempotency",
+                observation_code="documentation.behavior.idempotency",
             ))
 
     # Specialized observations from signals

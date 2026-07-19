@@ -1,0 +1,13 @@
+{
+  "external_ticket_id": "TKT-018",
+  "subject": "Customer create rejected for duplicate external_id",
+  "customer_message": "The customer create request fails with duplicate external_id.",
+  "http_method": "POST",
+  "endpoint_path": "/v1/customers/create",
+  "request_body": {
+    "name": "Acme",
+    "external_id": "acme-prod"
+  },
+  "response_status": 409,
+  "response_body": {"message": "external_id already exists"}
+}

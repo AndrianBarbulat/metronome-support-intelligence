@@ -43,6 +43,30 @@ CAPABILITY_MAP: dict[str, list[str]] = {
     ],
 }
 
+CAPABILITY_PURPOSE: dict[str, str] = {
+    "contract_creation": "operation",
+    "contract_retrieval": "verification",
+    "idempotency": "error_behavior",
+    "event_ingestion": "operation",
+    "event_search": "verification",
+    "billable_metric_configuration": "configuration",
+    "rate_card_configuration": "configuration",
+    "invoice_verification": "final_state",
+    "authentication": "validation",
+}
+
+CAPABILITY_QUERIES: dict[str, str] = {
+    "contract_creation": "Create a contract POST /v1/contracts/create",
+    "contract_retrieval": "Get a contract List customer contracts",
+    "idempotency": "API idempotency uniqueness_key duplicate request",
+    "event_ingestion": "Ingest events POST /v1/ingest transaction_id",
+    "event_search": "Search events transaction_id Event Search",
+    "billable_metric_configuration": "billable metric event_type property filters aggregation key",
+    "rate_card_configuration": "rate card configuration rates products",
+    "invoice_verification": "invoice line item usage billing period",
+    "authentication": "API authentication bearer token",
+}
+
 
 def infer_capabilities(source: TicketDocumentationSource) -> list[str]:
     """Infer investigation capabilities from a documentation source's title and heading."""
@@ -85,3 +109,11 @@ def find_best_source_for_capability(
         )
     )
     return candidates[0]
+
+
+def purpose_for_capability(capability: str) -> str:
+    return CAPABILITY_PURPOSE.get(capability, "supporting")
+
+
+def query_for_capability(capability: str) -> str:
+    return CAPABILITY_QUERIES.get(capability, capability.replace("_", " "))

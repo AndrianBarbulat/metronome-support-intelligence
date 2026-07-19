@@ -25,6 +25,7 @@ class InvestigationConcept:
     complete_when: list[str] = field(default_factory=list)
     conflicts_with: list[str] = field(default_factory=list)
     merge_group: str | None = None
+    concept_codes: list[str] = field(default_factory=list)
 
 
 GENERIC_CONCEPTS: list[InvestigationConcept] = [
@@ -34,7 +35,6 @@ GENERIC_CONCEPTS: list[InvestigationConcept] = [
         reason="Needed to correlate the request with server-side logs.",
         expected_evidence="Request ID (x-request-id header value).",
         priority="critical", blocking=True,
-        source_capabilities=["authentication"],
         scenario="generic",
         complete_when=["request_id_present"],
         merge_group="request_capture",
@@ -46,6 +46,7 @@ GENERIC_CONCEPTS: list[InvestigationConcept] = [
         expected_evidence="ISO-8601 timestamp or approximate UTC time.",
         priority="medium", blocking=False,
         scenario="generic",
+        complete_when=["timestamp_present"],
         merge_group="request_capture",
     ),
     InvestigationConcept(
@@ -95,7 +96,7 @@ GENERIC_CONCEPTS: list[InvestigationConcept] = [
         priority="low", blocking=False,
         source_capabilities=["authentication"],
         scenario="generic",
-        skip_when=["status_2xx_application_response"],
+        skip_when=["application_response_present"],
     ),
     InvestigationConcept(
         code="generic.verify_endpoint_and_method",
@@ -104,7 +105,6 @@ GENERIC_CONCEPTS: list[InvestigationConcept] = [
         expected_evidence="Comparison of used endpoint/method against documentation.",
         priority="high", blocking=True,
         merge_group="endpoint_verification",
-        complete_when=["endpoint_present", "http_method_present"],
         scenario="generic",
     ),
     InvestigationConcept(
@@ -190,6 +190,18 @@ CONTRACT_CONCEPTS: list[InvestigationConcept] = [
         scenario="contracts",
     ),
     InvestigationConcept(
+        code="contract.reproduce_minimal_valid_payload",
+        action="Reproduce the error with the smallest valid contract creation payload.",
+        reason="A minimal valid payload separates malformed or missing fields from configuration problems.",
+        expected_evidence="Minimal contract creation payload and resulting response.",
+        priority="medium", blocking=False,
+        prerequisites=["contract.validate_required_fields"],
+        source_capabilities=["contract_creation"],
+        triggered_by=["status_400"],
+        scenario="contracts",
+        merge_group="minimal_reproduction",
+    ),
+    InvestigationConcept(
         code="contract.capture_uniqueness_key",
         action="Record the uniqueness_key from the request.",
         reason="409 responses often involve uniqueness-key conflicts.",
@@ -244,9 +256,9 @@ CONTRACT_CONCEPTS: list[InvestigationConcept] = [
     ),
     InvestigationConcept(
         code="contract.compare_existing_pricing",
-        action="Compare existing contract pricing and rate card with intended configuration.",
-        reason="Ensure the contract has the correct pricing model.",
-        expected_evidence="Comparison of existing contract rate card with intended rate card.",
+        action="Compare the existing contract customer and pricing configuration with the intended contract.",
+        reason="Ensure the reused uniqueness key did not return a contract for the wrong customer or pricing model.",
+        expected_evidence="Comparison of existing contract customer_id, rate card, products, and intended configuration.",
         priority="high", blocking=False,
         prerequisites=["contract.retrieve_existing_contract"],
         source_capabilities=["contract_retrieval", "rate_card_configuration"],
@@ -260,14 +272,14 @@ CONTRACT_CONCEPTS: list[InvestigationConcept] = [
         reason="The same key should be reused only for the same logical retry.",
         expected_evidence="Decision and rationale for key reuse or replacement.",
         priority="high", blocking=True,
-        prerequisites=["contract.retrieve_existing_contract"],
+        prerequisites=["contract.compare_existing_pricing"],
         source_capabilities=["idempotency"],
         triggered_by=["status_409"],
         scenario="contracts",
     ),
     InvestigationConcept(
         code="contract.prepare_escalation",
-        action="If unresolved, escalate with request ID, uniqueness_key, and reproduction evidence.",
+        action="If unresolved, escalate with the request ID, timestamp, customer ID, contract ID, uniqueness_key, sanitized request and response, previous operation result, reproduction details, and final-state verification.",
         reason="Engineering needs identifiers, timestamps, and operation evidence.",
         expected_evidence="Complete investigation report with contract-specific evidence.",
         priority="high", blocking=False,
@@ -280,12 +292,13 @@ CONTRACT_CONCEPTS: list[InvestigationConcept] = [
 USAGE_CONCEPTS: list[InvestigationConcept] = [
     InvestigationConcept(
         code="usage.capture_transaction_id",
-        action="Record the transaction_id from the request.",
-        reason="The transaction_id is required to locate the event in Event Search.",
-        expected_evidence="Transaction ID value from the request body.",
+        action="Record the successful ingestion response and transaction_id.",
+        reason="The transaction_id and accepted response anchor the Event Search lookup.",
+        expected_evidence="Successful ingestion response and transaction_id value.",
         priority="critical", blocking=True,
         triggered_by=["scenario.usage_ingestion"],
         complete_when=["transaction_id_present"],
+        source_capabilities=["event_ingestion"],
         scenario="usage",
     ),
     InvestigationConcept(
@@ -304,7 +317,7 @@ USAGE_CONCEPTS: list[InvestigationConcept] = [
         action="Verify the event was matched to the intended customer or ingest alias.",
         reason="A customer mismatch routes usage to the wrong account.",
         expected_evidence="Event Search result showing matched customer or alias.",
-        priority="high", blocking=True,
+        priority="critical", blocking=True,
         prerequisites=["usage.search_event"],
         triggered_by=["scenario.usage_ingestion"],
         scenario="usage",
@@ -381,9 +394,22 @@ USAGE_CONCEPTS: list[InvestigationConcept] = [
         reason="Events outside the billing period may not appear on the expected invoice.",
         expected_evidence="Comparison of event timestamp with invoice billing period.",
         priority="high", blocking=False,
+        prerequisites=["usage.compare_aggregation_key"],
         source_capabilities=["invoice_verification"],
         triggered_by=["scenario.usage_ingestion"],
         scenario="usage",
+    ),
+    InvestigationConcept(
+        code="usage.verify_final_state",
+        action="Verify whether the expected invoice line item appears after processing.",
+        reason="Final invoice state confirms whether accepted usage became billable.",
+        expected_evidence="Invoice or line-item view showing expected usage quantity and charge.",
+        priority="high", blocking=True,
+        prerequisites=["usage.verify_invoice_period", "usage.verify_active_rate_card"],
+        source_capabilities=["invoice_verification"],
+        triggered_by=["scenario.usage_ingestion"],
+        scenario="usage",
+        merge_group="final_state",
     ),
     InvestigationConcept(
         code="usage.locate_original_transaction",
@@ -419,10 +445,11 @@ USAGE_CONCEPTS: list[InvestigationConcept] = [
     ),
     InvestigationConcept(
         code="usage.prepare_escalation",
-        action="If unresolved, escalate with transaction ID, customer ID, metric ID, Event Search results.",
+        action="If unresolved, escalate with transaction ID, customer ID, metric ID, timestamp, Event Search results, billable metric configuration, contract, rate card, invoice-period evidence, and final-state verification.",
         reason="Engineering needs complete usage-ingestion evidence.",
         expected_evidence="Complete investigation report with usage-specific evidence.",
         priority="high", blocking=False,
+        source_capabilities=["event_ingestion", "event_search", "billable_metric_configuration", "invoice_verification"],
         merge_group="engineering_escalation",
         scenario="usage",
     ),

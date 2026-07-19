@@ -1,0 +1,15 @@
+{
+  "external_ticket_id": "TKT-007",
+  "subject": "Contract creation fails because customer is unknown",
+  "customer_message": "Creating a contract returns a customer not found error.",
+  "http_method": "POST",
+  "endpoint_path": "/v1/contracts/create",
+  "request_body": {
+    "customer_id": "cust_missing",
+    "starting_at": "2026-08-01T00:00:00Z"
+  },
+  "response_status": 400,
+  "response_body": {
+    "message": "customer_id does not reference an existing customer"
+  }
+}

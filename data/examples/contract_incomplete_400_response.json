@@ -1,0 +1,11 @@
+{
+  "external_ticket_id": "TKT-009",
+  "subject": "Contract creation failed with 400 but no body",
+  "customer_message": "We got a 400 from contract creation but did not capture the response body.",
+  "http_method": "POST",
+  "endpoint_path": "/v1/contracts/create",
+  "request_body": {
+    "customer_id": "cust_123"
+  },
+  "response_status": 400
+}

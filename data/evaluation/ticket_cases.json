@@ -1,16 +1,700 @@
 {
-  "version": "1.1.0",
+  "version": "2.0.0",
   "cases": [
-    {"id": "contract-409-uniqueness", "input_file": "data/examples/contract_409.json", "split": "tuning", "expected": {"product_area": "contracts","http_method": "POST","endpoint_path": "/v1/contracts/create","status_code": 409,"required_observations": ["response status is 409", "request contains uniqueness_key"],"expected_documentation_pages": ["Create a contract"],"required_check_terms": ["previous", "uniqueness key", "contract"],"expect_redaction": true}},
-    {"id": "contract-missing-field", "input_file": "data/examples/contract_missing_field.json", "split": "tuning", "expected": {"product_area": "contracts","http_method": "POST","endpoint_path": "/v1/contracts/create","status_code": 400,"required_observations": ["response status is 400"],"expected_documentation_pages": ["Create a contract"],"required_check_terms": ["missing", "field"],"expect_redaction": true}},
-    {"id": "contract-invalid-timestamp", "input_file": "data/examples/contract_invalid_timestamp.json", "split": "tuning", "expected": {"product_area": "contracts","http_method": "POST","endpoint_path": "/v1/contracts/create","status_code": 400,"required_observations": ["response status is 400"],"expected_documentation_pages": ["Create a contract"],"required_check_terms": ["starting_at"],"expect_redaction": false}},
-    {"id": "usage-accepted-not-billed", "input_file": "data/examples/usage_accepted_not_billed.json", "split": "tuning", "expected": {"product_area": "usage","http_method": "POST","endpoint_path": "/v1/ingest","status_code": 200,"required_observations": ["ingest"],"expected_documentation_pages": ["Ingest events", "Send usage events"],"required_check_terms": ["event_type", "billable metric", "contract"],"expect_redaction": false}},
-    {"id": "usage-duplicate-transaction", "input_file": "data/examples/usage_duplicate_transaction.json", "split": "tuning", "expected": {"product_area": "usage","http_method": "POST","endpoint_path": "/v1/ingest","status_code": 409,"required_observations": ["response status is 409"],"expected_documentation_pages": ["Ingest events", "Send usage events"],"required_check_terms": ["transaction_id", "duplicate"],"expect_redaction": false}},
-    {"id": "customer-creation-error", "input_file": "data/examples/customer_creation_error.json", "split": "tuning", "expected": {"product_area": "customers","http_method": "POST","endpoint_path": "/v1/customers/create","status_code": 400,"required_observations": ["response status is 400"],"expected_documentation_pages": ["Create a customer"],"required_check_terms": ["duplicate", "identifier"],"expect_redaction": true}},
-    {"id": "vague-ticket", "input_file": "data/examples/vague_ticket.json", "split": "tuning", "expected": {"product_area": null,"http_method": null,"endpoint_path": null,"status_code": null,"required_observations": [],"expected_documentation_pages": [],"required_check_terms": ["evidence"],"expect_redaction": true, "expect_abstention": true}},
-    {"id": "contract-409-uq", "input_file": "data/examples/contract_409.json", "split": "holdout", "expected": {"product_area": "contracts","http_method": "POST","endpoint_path": "/v1/contracts/create","status_code": 409,"required_observations": ["response status is 409"],"expected_documentation_pages": ["Create a contract"],"primary_source_expected": "Create a contract","discarded_source_forbidden": ["Create a package", "Create a credit"],"required_check_terms": ["previous", "uniqueness key"],"expect_redaction": true}},
-    {"id": "usage-accepted", "input_file": "data/examples/usage_accepted_not_billed.json", "split": "holdout", "expected": {"product_area": "usage","http_method": "POST","endpoint_path": "/v1/ingest","status_code": 200,"required_observations": ["ingest"],"expected_documentation_pages": ["Ingest events"],"primary_source_expected": "Ingest events","required_check_terms": ["event_type", "billable metric"],"expect_redaction": false}},
-    {"id": "customer-creation", "input_file": "data/examples/customer_creation_error.json", "split": "holdout", "expected": {"product_area": "customers","http_method": "POST","endpoint_path": "/v1/customers/create","status_code": 400,"required_observations": ["response status is 400"],"expected_documentation_pages": ["Create a customer"],"required_check_terms": ["identifier"],"expect_redaction": true}},
-    {"id": "vague-incomplete", "input_file": "data/examples/vague_ticket.json", "split": "holdout", "expected": {"product_area": null,"required_observations": [],"expected_documentation_pages": [],"required_check_terms": ["evidence"],"expect_redaction": true, "expect_abstention": true}}
+    {
+      "id": "contract-409-uniqueness",
+      "input_file": "data/examples/contract_409.json",
+      "split": "tuning",
+      "expected": {
+        "product_area": "contracts",
+        "http_method": "POST",
+        "endpoint_path": "/v1/contracts/create",
+        "status_code": 409,
+        "primary_source_expected": "Create a contract",
+        "expected_sources_by_purpose": {
+          "operation": ["Create a contract"],
+          "error_behavior": ["API idempotency"],
+          "verification": ["Get a contract", "List customer contracts"],
+          "configuration": ["rate schedule", "rate card"]
+        },
+        "discarded_source_forbidden": ["Create a package", "List contracts associated with a package"],
+        "required_observation_codes": [
+          "request.method.present",
+          "request.endpoint.present",
+          "response.status.present",
+          "request.field.uniqueness_key.present",
+          "documentation.behavior.idempotency"
+        ],
+        "forbidden_observation_codes": ["root_cause.uniqueness_reuse.confirmed"],
+        "required_concepts": [
+          "contract.determine_retry_intent",
+          "contract.locate_previous_operation",
+          "contract.inspect_previous_result",
+          "contract.retrieve_existing_contract",
+          "contract.compare_existing_pricing",
+          "contract.decide_key_reuse",
+          "contract.prepare_escalation"
+        ],
+        "forbidden_concepts": [
+          "generic.verify_authentication",
+          "contract.validate_starting_at",
+          "contract.validate_required_fields",
+          "contract.reproduce_minimal_valid_payload",
+          "generic.capture_complete_request"
+        ],
+        "allowed_concepts": [
+          "contract.determine_retry_intent",
+          "contract.locate_previous_operation",
+          "contract.inspect_previous_result",
+          "contract.retrieve_existing_contract",
+          "contract.compare_existing_pricing",
+          "contract.decide_key_reuse",
+          "contract.prepare_escalation"
+        ],
+        "required_blocking_concepts": ["contract.locate_previous_operation", "contract.decide_key_reuse"],
+        "ordering_constraints": [
+          ["contract.locate_previous_operation", "contract.inspect_previous_result"],
+          ["contract.retrieve_existing_contract", "contract.compare_existing_pricing"],
+          ["contract.compare_existing_pricing", "contract.decide_key_reuse"],
+          ["generic.verify_final_state", "contract.prepare_escalation"]
+        ],
+        "expect_escalation_last": true,
+        "expect_redaction": true
+      }
+    },
+    {
+      "id": "contract-missing-field",
+      "input_file": "data/examples/contract_missing_field.json",
+      "split": "tuning",
+      "expected": {
+        "product_area": "contracts",
+        "http_method": "POST",
+        "endpoint_path": "/v1/contracts/create",
+        "status_code": 400,
+        "primary_source_expected": "Create a contract",
+        "expected_sources_by_purpose": {"operation": ["Create a contract"], "configuration": ["rate schedule", "rate card"]},
+        "required_observation_codes": ["response.status.present", "request.field.customer_id.present"],
+        "required_concepts": [
+          "contract.validate_required_fields",
+          "contract.validate_starting_at",
+          "contract.verify_customer_reference",
+          "contract.verify_rate_card_reference",
+          "contract.reproduce_minimal_valid_payload",
+          "contract.prepare_escalation"
+        ],
+        "forbidden_concepts": ["contract.locate_previous_operation"],
+        "allowed_concepts": [
+          "contract.validate_required_fields",
+          "contract.validate_starting_at",
+          "contract.verify_customer_reference",
+          "contract.verify_rate_card_reference",
+          "contract.reproduce_minimal_valid_payload",
+          "contract.prepare_escalation"
+        ],
+        "expect_escalation_last": true,
+        "expect_redaction": true
+      }
+    },
+    {
+      "id": "contract-invalid-timestamp",
+      "input_file": "data/examples/contract_invalid_timestamp.json",
+      "split": "tuning",
+      "expected": {
+        "product_area": "contracts",
+        "http_method": "POST",
+        "endpoint_path": "/v1/contracts/create",
+        "status_code": 400,
+        "primary_source_expected": "Create a contract",
+        "expected_sources_by_purpose": {"operation": ["Create a contract"]},
+        "required_observation_codes": ["response.status.present", "request.field.starting_at.present"],
+        "required_concepts": ["contract.validate_starting_at", "contract.reproduce_minimal_valid_payload", "contract.prepare_escalation"],
+        "forbidden_concepts": ["contract.locate_previous_operation"],
+        "allowed_concepts": [
+          "contract.validate_starting_at",
+          "contract.verify_customer_reference",
+          "contract.verify_rate_card_reference",
+          "contract.reproduce_minimal_valid_payload",
+          "contract.prepare_escalation"
+        ],
+        "expect_escalation_last": true,
+        "expect_redaction": false
+      }
+    },
+    {
+      "id": "contract-unknown-customer",
+      "input_file": "data/examples/contract_unknown_customer.json",
+      "split": "tuning",
+      "expected": {
+        "product_area": "contracts",
+        "http_method": "POST",
+        "endpoint_path": "/v1/contracts/create",
+        "status_code": 400,
+        "primary_source_expected": "Create a contract",
+        "expected_sources_by_purpose": {"operation": ["Create a contract"], "verification": ["List customer contracts", "Get a contract"]},
+        "required_observation_codes": ["request.field.customer_id.present", "response.status.present"],
+        "required_concepts": ["contract.verify_customer_reference", "contract.reproduce_minimal_valid_payload", "contract.prepare_escalation"],
+        "allowed_concepts": [
+          "contract.verify_customer_reference",
+          "contract.verify_rate_card_reference",
+          "contract.reproduce_minimal_valid_payload",
+          "contract.prepare_escalation"
+        ],
+        "expect_escalation_last": true
+      }
+    },
+    {
+      "id": "contract-unknown-rate-card",
+      "input_file": "data/examples/contract_unknown_rate_card.json",
+      "split": "tuning",
+      "expected": {
+        "product_area": "contracts",
+        "http_method": "POST",
+        "endpoint_path": "/v1/contracts/create",
+        "status_code": 400,
+        "primary_source_expected": "Create a contract",
+        "expected_sources_by_purpose": {"operation": ["Create a contract"], "configuration": ["rate schedule", "rate card"]},
+        "required_observation_codes": ["request.field.rate_card_id.present", "response.status.present"],
+        "required_concepts": ["contract.verify_rate_card_reference", "contract.reproduce_minimal_valid_payload", "contract.prepare_escalation"],
+        "allowed_concepts": [
+          "contract.verify_customer_reference",
+          "contract.verify_rate_card_reference",
+          "contract.reproduce_minimal_valid_payload",
+          "contract.prepare_escalation"
+        ],
+        "expect_escalation_last": true
+      }
+    },
+    {
+      "id": "contract-incomplete-400-response",
+      "input_file": "data/examples/contract_incomplete_400_response.json",
+      "split": "tuning",
+      "expected": {
+        "product_area": "contracts",
+        "http_method": "POST",
+        "endpoint_path": "/v1/contracts/create",
+        "status_code": 400,
+        "primary_source_expected": "Create a contract",
+        "required_observation_codes": ["response.status.present", "response.body.absent"],
+        "required_concepts": ["generic.capture_complete_response", "contract.validate_required_fields", "contract.prepare_escalation"],
+        "allowed_concepts": [
+          "contract.validate_required_fields",
+          "contract.validate_starting_at",
+          "contract.verify_customer_reference",
+          "contract.verify_rate_card_reference",
+          "contract.reproduce_minimal_valid_payload",
+          "contract.prepare_escalation"
+        ],
+        "expect_escalation_last": true
+      }
+    },
+    {
+      "id": "contract-retry-ambiguity",
+      "input_file": "data/examples/contract_retry_ambiguity.json",
+      "split": "tuning",
+      "expected": {
+        "product_area": "contracts",
+        "http_method": "POST",
+        "endpoint_path": "/v1/contracts/create",
+        "status_code": 409,
+        "primary_source_expected": "Create a contract",
+        "expected_sources_by_purpose": {"operation": ["Create a contract"], "error_behavior": ["API idempotency"]},
+        "required_observation_codes": ["request.field.uniqueness_key.present", "documentation.behavior.idempotency"],
+        "required_concepts": ["contract.determine_retry_intent", "contract.locate_previous_operation", "contract.prepare_escalation"],
+        "allowed_concepts": [
+          "contract.determine_retry_intent",
+          "contract.locate_previous_operation",
+          "contract.inspect_previous_result",
+          "contract.retrieve_existing_contract",
+          "contract.compare_existing_pricing",
+          "contract.decide_key_reuse",
+          "contract.prepare_escalation"
+        ],
+        "expect_escalation_last": true
+      }
+    },
+    {
+      "id": "usage-accepted-not-billed",
+      "input_file": "data/examples/usage_accepted_not_billed.json",
+      "split": "tuning",
+      "expected": {
+        "product_area": "usage",
+        "http_method": "POST",
+        "endpoint_path": "/v1/ingest",
+        "status_code": 200,
+        "primary_source_expected": "Ingest events",
+        "expected_sources_by_purpose": {
+          "operation": ["Ingest events"],
+          "verification": ["Search events"],
+          "configuration": ["billable metric", "rate card"],
+          "final_state": ["List invoices"]
+        },
+        "required_observation_codes": ["analysis.200.usage_ingestion", "request.field.transaction_id.present", "response.status.present"],
+        "required_concepts": [
+          "usage.capture_transaction_id",
+          "usage.search_event",
+          "usage.verify_customer_match",
+          "usage.verify_billable_metric_match",
+          "usage.compare_event_type",
+          "usage.compare_property_filters",
+          "usage.compare_aggregation_key",
+          "usage.verify_active_contract",
+          "usage.verify_active_rate_card",
+          "usage.verify_invoice_period",
+          "usage.verify_final_state",
+          "usage.prepare_escalation"
+        ],
+        "forbidden_concepts": ["usage.locate_original_transaction", "usage.compare_original_and_retry"],
+        "allowed_concepts": [
+          "usage.capture_transaction_id",
+          "usage.search_event",
+          "usage.verify_customer_match",
+          "usage.verify_billable_metric_match",
+          "usage.compare_event_type",
+          "usage.compare_property_filters",
+          "usage.compare_aggregation_key",
+          "usage.verify_active_contract",
+          "usage.verify_active_rate_card",
+          "usage.verify_invoice_period",
+          "usage.verify_final_state",
+          "usage.prepare_escalation"
+        ],
+        "ordering_constraints": [
+          ["usage.search_event", "usage.verify_customer_match"],
+          ["usage.verify_billable_metric_match", "usage.compare_event_type"],
+          ["usage.compare_aggregation_key", "usage.verify_invoice_period"],
+          ["usage.verify_final_state", "usage.prepare_escalation"]
+        ],
+        "expect_escalation_last": true,
+        "expect_redaction": false
+      }
+    },
+    {
+      "id": "usage-duplicate-transaction",
+      "input_file": "data/examples/usage_duplicate_transaction.json",
+      "split": "tuning",
+      "expected": {
+        "product_area": "usage",
+        "http_method": "POST",
+        "endpoint_path": "/v1/ingest",
+        "status_code": 409,
+        "primary_source_expected": "Ingest events",
+        "expected_sources_by_purpose": {"operation": ["Ingest events"], "verification": ["Search events"], "error_behavior": ["API idempotency"]},
+        "required_observation_codes": ["response.status.present", "request.field.transaction_id.present"],
+        "required_concepts": ["usage.locate_original_transaction", "usage.compare_original_and_retry", "usage.determine_same_logical_event", "usage.prepare_escalation"],
+        "forbidden_concepts": ["usage.verify_invoice_period", "usage.verify_billable_metric_match", "usage.verify_final_state"],
+        "allowed_concepts": [
+          "usage.locate_original_transaction",
+          "usage.compare_original_and_retry",
+          "usage.determine_same_logical_event",
+          "usage.prepare_escalation"
+        ],
+        "expect_escalation_last": true,
+        "expect_redaction": false
+      }
+    },
+    {
+      "id": "usage-missing-ingest-alias",
+      "input_file": "data/examples/usage_missing_ingest_alias.json",
+      "split": "tuning",
+      "expected": {
+        "product_area": "usage",
+        "http_method": "POST",
+        "endpoint_path": "/v1/ingest",
+        "status_code": 200,
+        "primary_source_expected": "Ingest events",
+        "expected_sources_by_purpose": {"operation": ["Ingest events"], "verification": ["Search events"]},
+        "required_observation_codes": ["analysis.200.usage_ingestion", "request.field.transaction_id.present"],
+        "required_concepts": ["usage.verify_customer_match", "usage.search_event", "usage.prepare_escalation"],
+        "allowed_concepts": [
+          "usage.capture_transaction_id",
+          "usage.search_event",
+          "usage.verify_customer_match",
+          "usage.verify_billable_metric_match",
+          "usage.compare_event_type",
+          "usage.compare_property_filters",
+          "usage.compare_aggregation_key",
+          "usage.verify_active_contract",
+          "usage.verify_active_rate_card",
+          "usage.verify_invoice_period",
+          "usage.verify_final_state",
+          "usage.prepare_escalation"
+        ],
+        "expect_escalation_last": true
+      }
+    },
+    {
+      "id": "usage-event-type-mismatch",
+      "input_file": "data/examples/usage_event_type_mismatch.json",
+      "split": "tuning",
+      "expected": {
+        "product_area": "usage",
+        "http_method": "POST",
+        "endpoint_path": "/v1/ingest",
+        "status_code": 200,
+        "primary_source_expected": "Ingest events",
+        "expected_sources_by_purpose": {"configuration": ["billable metric"]},
+        "required_observation_codes": ["request.field.event_type.present"],
+        "required_concepts": ["usage.compare_event_type", "usage.prepare_escalation"],
+        "allowed_concepts": [
+          "usage.capture_transaction_id",
+          "usage.search_event",
+          "usage.verify_customer_match",
+          "usage.verify_billable_metric_match",
+          "usage.compare_event_type",
+          "usage.compare_property_filters",
+          "usage.compare_aggregation_key",
+          "usage.verify_active_contract",
+          "usage.verify_active_rate_card",
+          "usage.verify_invoice_period",
+          "usage.verify_final_state",
+          "usage.prepare_escalation"
+        ],
+        "expect_escalation_last": true
+      }
+    },
+    {
+      "id": "usage-property-filter-mismatch",
+      "input_file": "data/examples/usage_property_filter_mismatch.json",
+      "split": "tuning",
+      "expected": {
+        "product_area": "usage",
+        "http_method": "POST",
+        "endpoint_path": "/v1/ingest",
+        "status_code": 200,
+        "primary_source_expected": "Ingest events",
+        "expected_sources_by_purpose": {"configuration": ["billable metric"]},
+        "required_observation_codes": ["request.field.properties.present"],
+        "required_concepts": ["usage.compare_property_filters", "usage.prepare_escalation"],
+        "allowed_concepts": [
+          "usage.capture_transaction_id",
+          "usage.search_event",
+          "usage.verify_customer_match",
+          "usage.verify_billable_metric_match",
+          "usage.compare_event_type",
+          "usage.compare_property_filters",
+          "usage.compare_aggregation_key",
+          "usage.verify_active_contract",
+          "usage.verify_active_rate_card",
+          "usage.verify_invoice_period",
+          "usage.verify_final_state",
+          "usage.prepare_escalation"
+        ],
+        "expect_escalation_last": true
+      }
+    },
+    {
+      "id": "usage-missing-aggregation-key",
+      "input_file": "data/examples/usage_missing_aggregation_key.json",
+      "split": "tuning",
+      "expected": {
+        "product_area": "usage",
+        "http_method": "POST",
+        "endpoint_path": "/v1/ingest",
+        "status_code": 200,
+        "primary_source_expected": "Ingest events",
+        "expected_sources_by_purpose": {"configuration": ["billable metric"]},
+        "required_observation_codes": ["request.field.properties.present"],
+        "required_concepts": ["usage.compare_aggregation_key", "usage.prepare_escalation"],
+        "allowed_concepts": [
+          "usage.capture_transaction_id",
+          "usage.search_event",
+          "usage.verify_customer_match",
+          "usage.verify_billable_metric_match",
+          "usage.compare_event_type",
+          "usage.compare_property_filters",
+          "usage.compare_aggregation_key",
+          "usage.verify_active_contract",
+          "usage.verify_active_rate_card",
+          "usage.verify_invoice_period",
+          "usage.verify_final_state",
+          "usage.prepare_escalation"
+        ],
+        "expect_escalation_last": true
+      }
+    },
+    {
+      "id": "usage-timestamp-outside-period",
+      "input_file": "data/examples/usage_timestamp_outside_period.json",
+      "split": "tuning",
+      "expected": {
+        "product_area": "usage",
+        "http_method": "POST",
+        "endpoint_path": "/v1/ingest",
+        "status_code": 200,
+        "primary_source_expected": "Ingest events",
+        "expected_sources_by_purpose": {"final_state": ["List invoices"]},
+        "required_observation_codes": ["request.field.timestamp.present"],
+        "required_concepts": ["usage.verify_invoice_period", "usage.prepare_escalation"],
+        "allowed_concepts": [
+          "usage.capture_transaction_id",
+          "usage.search_event",
+          "usage.verify_customer_match",
+          "usage.verify_billable_metric_match",
+          "usage.compare_event_type",
+          "usage.compare_property_filters",
+          "usage.compare_aggregation_key",
+          "usage.verify_active_contract",
+          "usage.verify_active_rate_card",
+          "usage.verify_invoice_period",
+          "usage.verify_final_state",
+          "usage.prepare_escalation"
+        ],
+        "expect_escalation_last": true
+      }
+    },
+    {
+      "id": "customer-creation-error",
+      "input_file": "data/examples/customer_creation_error.json",
+      "split": "tuning",
+      "expected": {
+        "product_area": "customers",
+        "http_method": "POST",
+        "endpoint_path": "/v1/customers/create",
+        "status_code": 400,
+        "primary_source_expected": "Create a customer",
+        "required_observation_codes": ["response.status.present"],
+        "required_concepts": ["customer.validate_required_fields", "customer.search_existing_customer", "customer.prepare_escalation"],
+        "allowed_concepts": [
+          "customer.validate_required_fields",
+          "customer.search_existing_customer",
+          "customer.compare_existing_identifiers",
+          "customer.verify_customer_mapping",
+          "customer.prepare_escalation"
+        ],
+        "expect_escalation_last": true,
+        "expect_redaction": true
+      }
+    },
+    {
+      "id": "customer-duplicate-alias",
+      "input_file": "data/examples/customer_duplicate_alias.json",
+      "split": "tuning",
+      "expected": {
+        "product_area": "customers",
+        "http_method": "POST",
+        "endpoint_path": "/v1/customers/create",
+        "status_code": 409,
+        "primary_source_expected": "Create a customer",
+        "required_observation_codes": ["request.field.ingest_aliases.present", "response.status.present"],
+        "required_concepts": ["customer.search_existing_customer", "customer.compare_existing_identifiers", "customer.prepare_escalation"],
+        "allowed_concepts": [
+          "customer.search_existing_customer",
+          "customer.compare_existing_identifiers",
+          "customer.verify_customer_mapping",
+          "customer.prepare_escalation"
+        ],
+        "expect_escalation_last": true,
+        "expect_redaction": true
+      }
+    },
+    {
+      "id": "customer-duplicate-external-id",
+      "input_file": "data/examples/customer_duplicate_external_id.json",
+      "split": "tuning",
+      "expected": {
+        "product_area": "customers",
+        "http_method": "POST",
+        "endpoint_path": "/v1/customers/create",
+        "status_code": 409,
+        "primary_source_expected": "Create a customer",
+        "required_observation_codes": ["request.field.external_id.present", "response.status.present"],
+        "required_concepts": ["customer.search_existing_customer", "customer.compare_existing_identifiers", "customer.prepare_escalation"],
+        "allowed_concepts": [
+          "customer.search_existing_customer",
+          "customer.compare_existing_identifiers",
+          "customer.verify_customer_mapping",
+          "customer.prepare_escalation"
+        ],
+        "expect_escalation_last": true
+      }
+    },
+    {
+      "id": "customer-cannot-retrieve",
+      "input_file": "data/examples/customer_cannot_retrieve.json",
+      "split": "tuning",
+      "expected": {
+        "product_area": "customers",
+        "http_method": "POST",
+        "endpoint_path": "/v1/customers/create",
+        "status_code": 200,
+        "primary_source_expected": "Create a customer",
+        "required_observation_codes": ["behavior.actual.present", "response.status.present"],
+        "required_concepts": ["customer.verify_customer_mapping", "customer.prepare_escalation"],
+        "allowed_concepts": [
+          "customer.search_existing_customer",
+          "customer.compare_existing_identifiers",
+          "customer.verify_customer_mapping",
+          "customer.prepare_escalation"
+        ],
+        "expect_escalation_last": true
+      }
+    },
+    {
+      "id": "auth-failure",
+      "input_file": "data/examples/auth_failure.json",
+      "split": "tuning",
+      "expected": {
+        "product_area": "contracts",
+        "http_method": "POST",
+        "endpoint_path": "/v1/contracts/create",
+        "status_code": 401,
+        "primary_source_expected": "Create a contract",
+        "required_observation_codes": ["response.status.present", "request.auth.redacted"],
+        "required_concepts": ["generic.verify_authentication"],
+        "forbidden_concepts": ["contract.verify_customer_reference", "contract.verify_rate_card_reference"],
+        "allowed_concepts": [],
+        "expect_redaction": true
+      }
+    },
+    {
+      "id": "malformed-json-request",
+      "input_file": "data/examples/malformed_json_request.json",
+      "split": "tuning",
+      "expected": {
+        "product_area": "contracts",
+        "http_method": "POST",
+        "endpoint_path": "/v1/contracts/create",
+        "status_code": 400,
+        "primary_source_expected": "Create a contract",
+        "required_observation_codes": ["request.body.present", "response.status.present"],
+        "required_concepts": ["contract.validate_required_fields", "contract.reproduce_minimal_valid_payload", "contract.prepare_escalation"],
+        "allowed_concepts": [
+          "contract.validate_required_fields",
+          "contract.validate_starting_at",
+          "contract.verify_customer_reference",
+          "contract.verify_rate_card_reference",
+          "contract.reproduce_minimal_valid_payload",
+          "contract.prepare_escalation"
+        ],
+        "expect_escalation_last": true
+      }
+    },
+    {
+      "id": "unknown-endpoint",
+      "input_file": "data/examples/unknown_endpoint.json",
+      "split": "tuning",
+      "expected": {
+        "product_area": null,
+        "http_method": "POST",
+        "endpoint_path": "/v1/widgets/create",
+        "status_code": 404,
+        "required_observation_codes": ["request.endpoint.present", "response.status.present"],
+        "required_concepts": ["generic.verify_endpoint_and_method"],
+        "allowed_concepts": [],
+        "expect_abstention": true
+      }
+    },
+    {
+      "id": "vague-ticket",
+      "input_file": "data/examples/vague_ticket.json",
+      "split": "tuning",
+      "expected": {
+        "product_area": null,
+        "http_method": null,
+        "endpoint_path": null,
+        "status_code": null,
+        "required_observation_codes": ["response.status.absent", "response.body.absent"],
+        "required_concepts": ["generic.capture_complete_request", "generic.capture_complete_response"],
+        "forbidden_concepts": ["generic.verify_final_state", "generic.prepare_escalation"],
+        "allowed_concepts": [],
+        "expect_redaction": true,
+        "expect_abstention": true
+      }
+    },
+    {
+      "id": "contract-409-uq",
+      "input_file": "data/examples/contract_409.json",
+      "split": "holdout",
+      "expected": {
+        "product_area": "contracts",
+        "http_method": "POST",
+        "endpoint_path": "/v1/contracts/create",
+        "status_code": 409,
+        "primary_source_expected": "Create a contract",
+        "expected_sources_by_purpose": {"operation": ["Create a contract"], "error_behavior": ["API idempotency"], "verification": ["Get a contract"]},
+        "discarded_source_forbidden": ["Create a package", "Create a credit"],
+        "required_observation_codes": ["response.status.present", "documentation.behavior.idempotency"],
+        "required_concepts": ["contract.locate_previous_operation", "contract.decide_key_reuse", "contract.prepare_escalation"],
+        "allowed_concepts": [
+          "contract.determine_retry_intent",
+          "contract.locate_previous_operation",
+          "contract.inspect_previous_result",
+          "contract.retrieve_existing_contract",
+          "contract.compare_existing_pricing",
+          "contract.decide_key_reuse",
+          "contract.prepare_escalation"
+        ],
+        "expect_escalation_last": true,
+        "expect_redaction": true
+      }
+    },
+    {
+      "id": "usage-accepted",
+      "input_file": "data/examples/usage_accepted_not_billed.json",
+      "split": "holdout",
+      "expected": {
+        "product_area": "usage",
+        "http_method": "POST",
+        "endpoint_path": "/v1/ingest",
+        "status_code": 200,
+        "primary_source_expected": "Ingest events",
+        "expected_sources_by_purpose": {"operation": ["Ingest events"], "verification": ["Search events"], "configuration": ["billable metric"], "final_state": ["List invoices"]},
+        "required_observation_codes": ["analysis.200.usage_ingestion"],
+        "required_concepts": ["usage.search_event", "usage.compare_event_type", "usage.verify_final_state", "usage.prepare_escalation"],
+        "allowed_concepts": [
+          "usage.capture_transaction_id",
+          "usage.search_event",
+          "usage.verify_customer_match",
+          "usage.verify_billable_metric_match",
+          "usage.compare_event_type",
+          "usage.compare_property_filters",
+          "usage.compare_aggregation_key",
+          "usage.verify_active_contract",
+          "usage.verify_active_rate_card",
+          "usage.verify_invoice_period",
+          "usage.verify_final_state",
+          "usage.prepare_escalation"
+        ],
+        "expect_escalation_last": true,
+        "expect_redaction": false
+      }
+    },
+    {
+      "id": "customer-creation",
+      "input_file": "data/examples/customer_creation_error.json",
+      "split": "holdout",
+      "expected": {
+        "product_area": "customers",
+        "http_method": "POST",
+        "endpoint_path": "/v1/customers/create",
+        "status_code": 400,
+        "primary_source_expected": "Create a customer",
+        "required_observation_codes": ["response.status.present"],
+        "required_concepts": ["customer.search_existing_customer", "customer.prepare_escalation"],
+        "allowed_concepts": [
+          "customer.validate_required_fields",
+          "customer.search_existing_customer",
+          "customer.compare_existing_identifiers",
+          "customer.verify_customer_mapping",
+          "customer.prepare_escalation"
+        ],
+        "expect_escalation_last": true,
+        "expect_redaction": true
+      }
+    },
+    {
+      "id": "vague-incomplete",
+      "input_file": "data/examples/vague_ticket.json",
+      "split": "holdout",
+      "expected": {
+        "product_area": null,
+        "required_observation_codes": ["response.status.absent"],
+        "required_concepts": ["generic.capture_complete_request", "generic.capture_complete_response"],
+        "forbidden_concepts": ["generic.verify_final_state", "generic.prepare_escalation"],
+        "allowed_concepts": [],
+        "expect_redaction": true,
+        "expect_abstention": true
+      }
+    }
   ]
 }

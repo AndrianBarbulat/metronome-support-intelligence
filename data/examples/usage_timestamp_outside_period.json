@@ -1,0 +1,17 @@
+{
+  "external_ticket_id": "TKT-016",
+  "subject": "Usage accepted but timestamp is outside invoice period",
+  "customer_message": "The event was accepted but is not on the July invoice.",
+  "http_method": "POST",
+  "endpoint_path": "/v1/ingest",
+  "request_body": {
+    "transaction_id": "tx-outside-period",
+    "customer_id": "alias-cust",
+    "event_type": "compute",
+    "properties": {"quantity": 50},
+    "timestamp": "2026-06-01T00:00:00Z"
+  },
+  "response_status": 200,
+  "response_body": {"status": "accepted"},
+  "actual_behavior": "Invoice shows zero usage for July."
+}

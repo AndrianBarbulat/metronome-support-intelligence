@@ -11,6 +11,7 @@ from src.documentation.reranker import SearchResult
 
 from .checklist_builder import build_investigation_checklist, identify_missing_evidence
 from .concept_registry import InvestigationConceptRegistry
+from .concept_merger import describe_merged_groups
 from .evidence_validator import ALL_PROVIDERS
 from .models import (
     InvestigationHypothesis,
@@ -26,6 +27,7 @@ from .retrieval_query import build_retrieval_plan
 from .sanitizer import sanitize_ticket
 from .signal_extractor import extract_signals
 from .source_selector import select_ticket_sources
+from .source_capabilities import query_for_capability
 
 _registry = InvestigationConceptRegistry()
 
@@ -68,27 +70,37 @@ def analyze_support_ticket(
     # 5. Run rule providers
     validation_findings, _provider_steps = _run_providers(st, signals, all_doc_results)
 
-    # 6. Select documentation sources
-    selected_sources, discarded_sources = select_ticket_sources(all_doc_results, signals, limit=6)
-    doc_confidence = _calc_documentation_confidence(selected_sources)
-
-    # 7. Create observations
-    observations = build_observations(st, signals, validation_findings, selected_sources)
-
-    # 8. Identify missing evidence
+    # 6. Identify missing evidence
     missing = identify_missing_evidence(st, signals)
     evidence_comp = _calc_evidence_completeness(missing)
 
-    # 9. Generate hypotheses
+    # 7. Generate hypotheses
     hypotheses = _generate_hypotheses(st, signals, all_doc_results, validation_findings)
 
-    # 10. Select, suppress, merge investigation concepts (evidence-aware)
-    concepts = _registry.select(
-        signals, validation_findings, hypotheses, missing, ticket=st,
+    # 8. Select, suppress, merge investigation concepts (evidence-aware)
+    selection = _registry.select_with_trace(
+        signals=signals,
+        findings=validation_findings,
+        hypotheses=hypotheses,
+        missing=missing,
+        ticket=st,
+    )
+    required_capabilities = _required_source_capabilities(selection.selected_concepts)
+    capability_queries = _augment_results_for_capabilities(
+        database_path, all_doc_results, required_capabilities,
     )
 
+    # 9. Select documentation sources by operation and investigation purpose
+    selected_sources, discarded_sources = select_ticket_sources(
+        all_doc_results, signals, limit=12, required_capabilities=required_capabilities,
+    )
+    doc_confidence = _calc_documentation_confidence(selected_sources)
+
+    # 10. Create observations
+    observations = build_observations(st, signals, validation_findings, selected_sources)
+
     # 11. Build concept-driven checklist with source links
-    checklist = build_investigation_checklist(concepts, selected_sources)
+    checklist = build_investigation_checklist(selection.merged_concepts, selected_sources)
 
     # 12. Summary & confidence
     summary = _build_summary(st, signals, selected_sources)
@@ -106,7 +118,11 @@ def analyze_support_ticket(
         investigation_steps=checklist,
         documentation_sources=selected_sources,
         discarded_sources=discarded_sources,
-        retrieval_query="; ".join(plan.all_queries()),
+        candidate_concept_codes=[c.code for c in selection.candidate_concepts],
+        selected_concept_codes=[c.code for c in selection.selected_concepts],
+        concept_decisions=selection.decisions,
+        merged_concept_groups=describe_merged_groups(selection.merged_concepts),
+        retrieval_query="; ".join(plan.all_queries() + capability_queries),
         retrieval_confidence=retrieval_confidence,
         signal_confidence=signal_confidence,
         documentation_confidence=doc_confidence,
@@ -155,6 +171,51 @@ def _calc_retrieval_confidence(results) -> float:
 def _calc_documentation_confidence(sources) -> float:
     if not sources: return 0.0
     return 0.8 if any(s.usage_type == "primary" for s in sources) else 0.4
+
+
+def _required_source_capabilities(concepts) -> list[str]:
+    capabilities: list[str] = []
+    for concept in concepts:
+        for capability in concept.source_capabilities:
+            if capability not in capabilities:
+                capabilities.append(capability)
+    return capabilities
+
+
+def _augment_results_for_capabilities(
+    database_path: Path,
+    all_doc_results: list[SearchResult],
+    capabilities: list[str],
+) -> list[str]:
+    seen_urls = {r.source_url for r in all_doc_results}
+    queries: list[str] = []
+    for capability in capabilities:
+        if _results_have_capability(all_doc_results, capability):
+            continue
+        query = query_for_capability(capability)
+        queries.append(query)
+        results = search_documentation(database_path=database_path, query=query, limit=8)
+        for result in results:
+            if result.source_url not in seen_urls:
+                seen_urls.add(result.source_url)
+                all_doc_results.append(result)
+    return queries
+
+
+def _results_have_capability(results: list[SearchResult], capability: str) -> bool:
+    from .models import TicketDocumentationSource
+    from .source_capabilities import source_satisfies_capability
+
+    for result in results:
+        source = TicketDocumentationSource(
+            page_title=result.page_title,
+            source_url=result.source_url,
+            heading=result.heading,
+            relevance_score=result.final_score,
+        )
+        if source_satisfies_capability(source, capability):
+            return True
+    return False
 
 
 def _calc_evidence_completeness(missing) -> float:

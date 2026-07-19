@@ -1,0 +1,17 @@
+{
+  "external_ticket_id": "TKT-013",
+  "subject": "Usage accepted but event type does not match metric",
+  "customer_message": "The event was accepted, but the invoice is still zero.",
+  "http_method": "POST",
+  "endpoint_path": "/v1/ingest",
+  "request_body": {
+    "transaction_id": "tx-event-type",
+    "customer_id": "alias-cust",
+    "event_type": "compute_v2",
+    "properties": {"quantity": 10},
+    "timestamp": "2026-07-19T10:00:00Z"
+  },
+  "response_status": 200,
+  "response_body": {"status": "accepted"},
+  "actual_behavior": "Usage is not reflected in the invoice."
+}

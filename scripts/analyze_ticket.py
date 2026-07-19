@@ -13,6 +13,7 @@ def main() -> None:
     parser.add_argument("--analyzer-version", type=str, default="1.0.0")
     parser.add_argument("--no-persist", action="store_true")
     parser.add_argument("--explain-retrieval", action="store_true")
+    parser.add_argument("--explain-concepts", action="store_true")
     parser.add_argument("--output", type=Path, default=None)
     args = parser.parse_args()
 
@@ -77,6 +78,9 @@ def main() -> None:
         print(f"Retrieval confidence: {report.retrieval_confidence:.2f}")
         print()
 
+    if args.explain_concepts:
+        _print_concept_explanation(report)
+
     if args.output:
         out_path = project_root / args.output
         out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -84,6 +88,68 @@ def main() -> None:
         out_path.write_text(json.dumps({k: v for k, v in asdict(report).items()
                                          if k != 'content'}, indent=2, default=str), encoding="utf-8")
         print(f"Report saved to: {out_path}")
+
+def _print_concept_explanation(report) -> None:
+    decisions_by_status = {"selected": [], "already_complete": [], "suppressed": [], "not_applicable": []}
+    for decision in report.concept_decisions:
+        decisions_by_status.setdefault(decision.status, []).append(decision)
+
+    print("Concept selection explanation")
+    print()
+    print("Candidate concepts")
+    for code in report.candidate_concept_codes:
+        print(f"- {code}")
+    print()
+
+    for status, label in [
+        ("selected", "Selected concepts"),
+        ("already_complete", "Already-complete concepts"),
+        ("suppressed", "Suppressed concepts"),
+        ("not_applicable", "Not-applicable concepts"),
+    ]:
+        print(label)
+        for decision in decisions_by_status.get(status, []):
+            print(f"- {decision.concept_code}")
+            for reason in decision.reasons:
+                print(f"  Reason: {reason}")
+            if decision.satisfied_by:
+                print(f"  Satisfied by: {', '.join(decision.satisfied_by)}")
+        print()
+
+    print("Merge groups")
+    if report.merged_concept_groups:
+        for group in report.merged_concept_groups:
+            print(f"- {group.merge_group}")
+            for code in group.concept_codes:
+                print(f"  - {code}")
+            print(f"  Into: {group.action}")
+    else:
+        print("- none")
+    print()
+
+    print("Merged checklist steps")
+    for step in report.investigation_steps:
+        print(f"{step.order}. {step.action}")
+        print(f"   Concepts: {', '.join(step.concept_codes)}")
+    print()
+
+    print("Ordering dependencies")
+    for step in report.investigation_steps:
+        if step.concept_codes:
+            print(f"- {step.order}: {', '.join(step.concept_codes)}")
+    print()
+
+    print("Source capability links")
+    for source in report.documentation_sources:
+        caps = ", ".join(source.source_capabilities) or "none"
+        purposes = ", ".join(source.source_purposes) or "none"
+        print(f"- {source.page_title}: capabilities={caps}; purposes={purposes}")
+    print()
+
+    print("Final checklist")
+    for step in report.investigation_steps:
+        print(f"{step.order}. {step.action}")
+    print()
 
 
 if __name__ == "__main__":

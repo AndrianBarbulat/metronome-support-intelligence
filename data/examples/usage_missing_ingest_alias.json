@@ -1,0 +1,16 @@
+{
+  "external_ticket_id": "TKT-011",
+  "subject": "Usage accepted but customer alias missing",
+  "customer_message": "Usage events return 200 but do not appear on the customer's invoice.",
+  "http_method": "POST",
+  "endpoint_path": "/v1/ingest",
+  "request_body": {
+    "transaction_id": "tx-missing-alias",
+    "event_type": "compute",
+    "properties": {"quantity": 100},
+    "timestamp": "2026-07-19T10:00:00Z"
+  },
+  "response_status": 200,
+  "response_body": {"status": "accepted"},
+  "actual_behavior": "Invoice shows zero usage."
+}

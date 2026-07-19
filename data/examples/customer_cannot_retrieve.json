@@ -1,0 +1,14 @@
+{
+  "external_ticket_id": "TKT-019",
+  "subject": "Customer created but cannot be retrieved",
+  "customer_message": "Create customer returned success, but GET customer cannot find the new record.",
+  "http_method": "POST",
+  "endpoint_path": "/v1/customers/create",
+  "request_body": {
+    "name": "Acme",
+    "external_id": "acme-retrieve"
+  },
+  "response_status": 200,
+  "response_body": {"id": "cust_new", "name": "Acme"},
+  "actual_behavior": "Created customer cannot be retrieved by ID."
+}

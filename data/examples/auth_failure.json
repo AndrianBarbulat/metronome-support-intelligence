@@ -1,0 +1,10 @@
+{
+  "external_ticket_id": "TKT-020",
+  "subject": "Contract API returns unauthorized",
+  "customer_message": "POST /v1/contracts/create returns 401 Unauthorized.",
+  "http_method": "POST",
+  "endpoint_path": "/v1/contracts/create",
+  "request_headers": {"Authorization": "Bearer expired-secret-token"},
+  "response_status": 401,
+  "response_body": {"message": "Unauthorized"}
+}

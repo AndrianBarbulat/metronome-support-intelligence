@@ -15,6 +15,7 @@ SENSITIVE_HEADER_KEYS = {
 _BEARER_RE = re.compile(r"bearer\s+[^\s]+", re.IGNORECASE)
 _JWT_RE = re.compile(r"eyJ[a-zA-Z0-9_-]+\.eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+")
 _API_KEY_RE = re.compile(r"(?:api[_-]?key|apikey)\s*[:=]\s*\S+", re.IGNORECASE)
+_SK_KEY_RE = re.compile(r"\bsk_(?:test|live)_[A-Za-z0-9_\-]+\b")
 _LONG_HEX_RE = re.compile(r"\b[a-f0-9]{40,}\b", re.IGNORECASE)
 _CONN_STRING_PWD_RE = re.compile(r"(?:password|pwd)\s*=\s*\S+", re.IGNORECASE)
 
@@ -118,6 +119,7 @@ def _redact_secrets_in_text(text: str, strict: bool) -> tuple[str, int]:
         (_BEARER_RE, "bearer_token"),
         (_JWT_RE, "jwt"),
         (_API_KEY_RE, "api_key"),
+        (_SK_KEY_RE, "secret_key"),
         (_LONG_HEX_RE, "long_hex"),
         (_CONN_STRING_PWD_RE, "connection_string_password"),
     ]:

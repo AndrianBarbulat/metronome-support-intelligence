@@ -114,6 +114,7 @@ def build_investigation_checklist(
 
         steps.append(InvestigationStep(
             order=order,
+            concept_codes=concept.concept_codes or [concept.code],
             action=concept.action,
             reason=concept.reason,
             expected_evidence=concept.expected_evidence,

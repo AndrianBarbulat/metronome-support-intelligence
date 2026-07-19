@@ -1,0 +1,14 @@
+{
+  "external_ticket_id": "TKT-017",
+  "subject": "Customer create rejected for duplicate ingest alias",
+  "customer_message": "Creating a customer fails because the ingest alias already exists.",
+  "http_method": "POST",
+  "endpoint_path": "/v1/customers/create",
+  "request_headers": {"Authorization": "Bearer customer-secret-token"},
+  "request_body": {
+    "name": "Acme",
+    "ingest_aliases": ["acme-prod"]
+  },
+  "response_status": 409,
+  "response_body": {"message": "ingest alias already exists"}
+}

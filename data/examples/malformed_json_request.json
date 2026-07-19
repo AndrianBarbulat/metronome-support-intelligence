@@ -1,0 +1,10 @@
+{
+  "external_ticket_id": "TKT-021",
+  "subject": "Contract create fails because JSON is malformed",
+  "customer_message": "The request body is malformed JSON and the API returns 400.",
+  "http_method": "POST",
+  "endpoint_path": "/v1/contracts/create",
+  "request_body": "{\"customer_id\":\"cust_123\",",
+  "response_status": 400,
+  "response_body": {"message": "Malformed JSON request body"}
+}

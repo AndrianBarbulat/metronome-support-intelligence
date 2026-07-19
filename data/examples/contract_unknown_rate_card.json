@@ -1,0 +1,16 @@
+{
+  "external_ticket_id": "TKT-008",
+  "subject": "Contract creation fails for unknown rate card",
+  "customer_message": "The contract create call fails when we include this rate card.",
+  "http_method": "POST",
+  "endpoint_path": "/v1/contracts/create",
+  "request_body": {
+    "customer_id": "cust_123",
+    "starting_at": "2026-08-01T00:00:00Z",
+    "rate_card_id": "rc_missing"
+  },
+  "response_status": 400,
+  "response_body": {
+    "message": "rate_card_id does not reference an active rate card"
+  }
+}

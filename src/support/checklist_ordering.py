@@ -61,6 +61,8 @@ def order_concepts(concepts: list[InvestigationConcept]) -> list[InvestigationCo
     result = [code_map[code] for code in ordered_codes]
 
     # Post-order: ensure escalation is last, final_state before escalation
+    if any(c.scenario == "contracts" for c in result):
+        result = _move_to_start_by_group(result, "request_capture")
     result = _move_to_end_by_group(result, "engineering_escalation")
     result = _move_before_group(result, "final_state", "engineering_escalation")
 
@@ -88,6 +90,15 @@ def _move_to_end_by_group(
     return others + matching
 
 
+def _move_to_start_by_group(
+    concepts: list[InvestigationConcept], group: str
+) -> list[InvestigationConcept]:
+    """Move all concepts with the given merge_group to the beginning."""
+    matching = [c for c in concepts if c.merge_group == group]
+    others = [c for c in concepts if c.merge_group != group]
+    return matching + others
+
+
 def _move_before_group(
     concepts: list[InvestigationConcept], before_group: str, after_group: str
 ) -> list[InvestigationConcept]:
@@ -95,14 +106,7 @@ def _move_before_group(
     before = [c for c in concepts if c.merge_group == before_group]
     after = [c for c in concepts if c.merge_group == after_group]
     middle = [c for c in concepts if c.merge_group not in (before_group, after_group)]
-    result = middle
-    try:
-        idx = next(i for i, c in enumerate(result) if c.merge_group == after_group)
-    except StopIteration:
-        idx = len(result)
-    for b in before:
-        result.insert(idx, b)
-    return result
+    return middle + before + after
 
 
 def _move_to_end(

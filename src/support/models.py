@@ -98,10 +98,27 @@ class InvestigationHypothesis:
 
 
 @dataclass
+class ConceptSelectionDecision:
+    concept_code: str
+    status: str  # selected, already_complete, not_applicable, suppressed
+    reasons: list[str] = field(default_factory=list)
+    satisfied_by: list[str] = field(default_factory=list)
+
+
+@dataclass
+class MergedConceptGroup:
+    merge_group: str
+    concept_codes: list[str] = field(default_factory=list)
+    action: str = ""
+    reason: str = ""
+
+
+@dataclass
 class InvestigationStep:
     order: int
-    action: str
-    reason: str
+    concept_codes: list[str] = field(default_factory=list)
+    action: str = ""
+    reason: str = ""
     expected_evidence: str | None = None
     source_url: str | None = None
     priority: str = "medium"
@@ -125,6 +142,10 @@ class TicketDocumentationSource:
     matched_tokens: list[str] = field(default_factory=list)
     ranking_reasons: list[str] = field(default_factory=list)
     usage_type: str = "diagnosis"
+    source_capabilities: list[str] = field(default_factory=list)
+    source_purposes: list[str] = field(default_factory=list)
+    http_method: str | None = None
+    endpoint_path: str | None = None
 
 
 @dataclass
@@ -141,6 +162,10 @@ class TicketInvestigationReport:
     investigation_steps: list[InvestigationStep] = field(default_factory=list)
     documentation_sources: list[TicketDocumentationSource] = field(default_factory=list)
     discarded_sources: list[TicketDocumentationSource] = field(default_factory=list)
+    candidate_concept_codes: list[str] = field(default_factory=list)
+    selected_concept_codes: list[str] = field(default_factory=list)
+    concept_decisions: list[ConceptSelectionDecision] = field(default_factory=list)
+    merged_concept_groups: list[MergedConceptGroup] = field(default_factory=list)
 
     retrieval_query: str = ""
     retrieval_confidence: float = 0.0

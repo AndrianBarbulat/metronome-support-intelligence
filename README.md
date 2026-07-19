@@ -243,3 +243,95 @@ python -m pytest tests/test_documentation_sync.py -v
 
 ```bash
 python -m pytest tests/ -v
+```
+
+## Adaptive Investigation Checklists
+
+Phase 4.4 adds deterministic, evidence-aware investigation checklists for support tickets. The analyzer selects concepts based on missing or unverified evidence, marks already-satisfied concepts as complete, suppresses irrelevant work, and merges overlapping concepts into concise checklist steps that retain all underlying concept codes.
+
+Current registered concept count is reported programmatically:
+
+```text
+Total concepts: 45
+generic: 11
+contracts: 14
+usage: 15
+customers: 5
+```
+
+Concept selection states are:
+
+```text
+selected
+already_complete
+suppressed
+not_applicable
+```
+
+Suppression prevents the checklist from asking for evidence already present in the ticket, such as a structured request body, response status/body, expected behavior, actual behavior, valid `starting_at`, or authentication checks after an application-level response. Scenario gates keep contract uniqueness, contract validation, usage accepted-but-not-billed, duplicate transaction, customer, authentication, unknown-endpoint, and vague-ticket workflows focused.
+
+Overlapping concepts merge by groups such as `request_capture`, `endpoint_verification`, `minimal_reproduction`, `final_state`, `engineering_escalation`, `customer_reference`, and `pricing_reference`. Each merged checklist step stores `concept_codes`, so evaluation no longer infers coverage from action prose.
+
+Documentation retrieval is evaluated by investigation purpose:
+
+```text
+operation
+error_behavior
+validation
+verification
+configuration
+final_state
+```
+
+The evaluator reports primary-source Top-1 accuracy, purpose-source recall, observation-code coverage, concept coverage, checklist precision, ordering accuracy, blocking-step coverage, escalation placement, already-complete-step rate, redundant-step rate, secret redaction, and unsupported-case abstention.
+
+Current ticket evaluation data:
+
+```text
+Tuning cases: 22
+Holdout cases: 4
+Total cases: 26
+```
+
+Quality thresholds remain deterministic gates before any LLM functionality is enabled:
+
+```text
+Signal extraction >= 95%
+Primary-source accuracy >= 95%
+Purpose-source recall >= 95%
+Observation coverage >= 90%
+Concept coverage >= 85%
+Checklist precision >= 85%
+Checklist ordering >= 90%
+Incidental-source exclusion >= 90%
+Already-complete-step rate <= 5%
+Redundant-step rate = 0%
+Secret redaction = 100%
+Unsupported-case abstention = 100%
+```
+
+Useful commands:
+
+```bash
+python scripts/validate_concept_registry.py
+```
+
+```bash
+python scripts/analyze_ticket.py \
+  --input data/examples/contract_409.json \
+  --explain-concepts
+```
+
+```bash
+python scripts/evaluate_tickets.py --split all
+```
+
+```bash
+python -m pytest tests/ -v
+```
+
+Current complete suite:
+
+```text
+205 tests passing
+```

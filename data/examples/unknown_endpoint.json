@@ -1,0 +1,9 @@
+{
+  "external_ticket_id": "TKT-022",
+  "subject": "Unknown endpoint returns 404",
+  "customer_message": "POST /v1/widgets/create returns 404 and we cannot find the endpoint.",
+  "http_method": "POST",
+  "endpoint_path": "/v1/widgets/create",
+  "response_status": 404,
+  "response_body": {"message": "Not found"}
+}
