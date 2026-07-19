@@ -1493,3 +1493,14 @@ def _config_error_page(message: str) -> str:
   <div class='metric-row'><span class='mono'>GEMINI_MODEL</span><span class='badge {'ok' if os.getenv('GEMINI_MODEL') else 'bad'}'>{"Configured" if os.getenv("GEMINI_MODEL") else "Missing"}</span></div>
 </section>"""
     return _layout(body, active="assistant", breadcrumb="Configuration")
+
+# ---------------------------------------------------------------------------
+# Run directly for local development (not used on Vercel)
+# ---------------------------------------------------------------------------
+if __name__ == "__main__":
+    import argparse, os
+    p = argparse.ArgumentParser(description="Metronome Support Intelligence")
+    p.add_argument("--port", type=int, default=int(os.getenv("DEMO_PORT", "8501")))
+    args = p.parse_args()
+    print(f"Metronome Support Intelligence -- http://127.0.0.1:{args.port}")
+    app.run(host="127.0.0.1", port=args.port, debug=False)
