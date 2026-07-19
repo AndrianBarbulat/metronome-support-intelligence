@@ -395,3 +395,144 @@ Current complete suite:
 ```text
 262 tests passing
 ```
+
+## Grounded Gemini Drafting
+
+Phase 6 adds a grounded communication layer that converts already-verified structured evidence into polished drafts.
+
+**Architecture:**
+- **DeepSeek/Cline** was used as the coding agent
+- **Gemini** is the application drafting provider
+- Gemini receives only **sanitized grounding packages**
+- The **deterministic pipeline remains the source of truth**
+
+**Key guarantees:**
+- Every claim references stable fact codes
+- Every source reference is validated
+- Hypotheses cannot be silently converted into causes
+- Customer resolutions require confirmed resolutions
+- Drafts require human review
+- Automated tests use the mock provider (no live API calls)
+- The live Gemini provider is intended for the short interview demonstration
+
+### Setup
+
+```bash
+copy .env.example .env
+```
+
+Then edit `.env`:
+
+```env
+DRAFTING_PROVIDER=gemini
+GEMINI_API_KEY=your-key-here
+GEMINI_MODEL=gemini-2.0-flash
+```
+
+For development without live API calls, set `DRAFTING_PROVIDER=mock`.
+
+### Supported draft types
+
+| Code | Audience | Description |
+|------|----------|-------------|
+| `customer_update` | customer | Status update during investigation |
+| `customer_resolution` | customer | Final resolution with confirmed root cause |
+| `engineering_escalation` | engineering | Detailed technical escalation |
+| `internal_case_summary` | internal | Internal case documentation |
+| `documentation_proposal` | internal | Proposed documentation improvement |
+| `product_feedback` | product | Product or observability feedback |
+| `executive_summary` | executive | Leadership briefing summary |
+
+### Commands
+
+Generate a grounded draft:
+
+```bash
+python scripts/generate_draft.py \
+  --ticket-id 4 \
+  --type engineering_escalation \
+  --show-grounding \
+  --show-validation
+```
+
+Generate a customer resolution:
+
+```bash
+python scripts/generate_draft.py \
+  --ticket-id 4 \
+  --resolution-id 2 \
+  --type customer_resolution
+```
+
+List all drafts:
+
+```bash
+python scripts/list_drafts.py --status needs_review
+```
+
+Inspect a specific draft:
+
+```bash
+python scripts/inspect_draft.py --draft-id 6
+```
+
+Approve or reject a draft:
+
+```bash
+python scripts/review_draft.py \
+  --draft-id 6 \
+  --decision approve \
+  --reviewer "Andrian"
+```
+
+Run the drafting evaluation:
+
+```bash
+python scripts/evaluate_drafting.py --split all
+```
+
+Seed demo scenarios:
+
+```bash
+python scripts/seed_demo.py
+```
+
+Reset demo data (preserves documentation):
+
+```bash
+python scripts/reset_demo.py
+```
+
+### Drafting evaluation
+
+```text
+Tuning cases: 12
+Holdout cases: 6
+Total cases: 18
+```
+
+Quality thresholds:
+
+```text
+Structured-output validity = 100%
+Fact-reference validity = 100%
+Claim-map validity = 100%
+Source-reference validity = 100%
+Unsupported-claim rejection = 100%
+Resolution-status compliance = 100%
+Secret redaction = 100%
+Customer-safety accuracy = 100%
+Hypothesis labelling >= 95%
+Required-section coverage >= 95%
+Human-review transitions = 100%
+```
+
+### Gemini SDK dependency
+
+```text
+google-generativeai (google-genai)
+```
+
+The provider abstraction allows swapping to Vertex AI or another provider without changing the support workflow.
+
+

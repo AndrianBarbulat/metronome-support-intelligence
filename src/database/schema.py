@@ -285,4 +285,47 @@ CREATE TABLE IF NOT EXISTS support_feedback_items (
     review_notes          TEXT,
     FOREIGN KEY (resolution_id) REFERENCES support_ticket_resolutions(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS support_generated_drafts (
+    id                    INTEGER PRIMARY KEY AUTOINCREMENT,
+    ticket_id             INTEGER,
+    analysis_id           INTEGER,
+    resolution_id         INTEGER,
+    feedback_id           INTEGER,
+
+    draft_type            TEXT    NOT NULL,
+    audience              TEXT    NOT NULL DEFAULT 'internal',
+    tone                  TEXT    NOT NULL DEFAULT 'professional',
+
+    subject               TEXT,
+    body                  TEXT    NOT NULL DEFAULT '',
+
+    grounding_package_json TEXT   NOT NULL DEFAULT '{}',
+    used_fact_codes_json  TEXT    NOT NULL DEFAULT '[]',
+    used_source_urls_json TEXT    NOT NULL DEFAULT '[]',
+    claim_map_json        TEXT    NOT NULL DEFAULT '[]',
+
+    provider              TEXT    NOT NULL DEFAULT '',
+    model                 TEXT    NOT NULL DEFAULT '',
+    prompt_version        TEXT    NOT NULL DEFAULT '',
+    grounding_package_version TEXT NOT NULL DEFAULT '1.0.0',
+
+    validation_status     TEXT    NOT NULL DEFAULT '',
+    validation_errors_json TEXT   NOT NULL DEFAULT '[]',
+    validation_warnings_json TEXT  NOT NULL DEFAULT '[]',
+    unsupported_claims_json TEXT   NOT NULL DEFAULT '[]',
+
+    status                TEXT    NOT NULL DEFAULT 'generated',
+
+    created_at            TEXT    NOT NULL,
+    updated_at            TEXT    NOT NULL,
+    reviewed_at           TEXT,
+    reviewed_by           TEXT,
+    review_notes          TEXT,
+
+    FOREIGN KEY (ticket_id) REFERENCES support_tickets(id) ON DELETE SET NULL,
+    FOREIGN KEY (analysis_id) REFERENCES support_ticket_analyses(id) ON DELETE SET NULL,
+    FOREIGN KEY (resolution_id) REFERENCES support_ticket_resolutions(id) ON DELETE SET NULL,
+    FOREIGN KEY (feedback_id) REFERENCES support_feedback_items(id) ON DELETE SET NULL
+);
 """.strip()

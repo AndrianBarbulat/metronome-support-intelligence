@@ -1,0 +1,167 @@
+[
+  {
+    "case_id": "draft-customer-update-valid",
+    "case_label": "Customer update with valid observed facts",
+    "draft_type": "customer_update",
+    "expected_valid": true,
+    "split": "tuning",
+    "mock_mode": "valid",
+    "description": "A standard customer update with observed facts should pass validation."
+  },
+  {
+    "case_id": "draft-unknown-fact",
+    "case_label": "Unknown fact code in draft",
+    "draft_type": "customer_update",
+    "expected_valid": false,
+    "split": "tuning",
+    "mock_mode": "unknown_fact",
+    "description": "Draft references a fact code not in grounding package — must be rejected."
+  },
+  {
+    "case_id": "draft-unknown-source",
+    "case_label": "Unknown source URL in draft",
+    "draft_type": "customer_update",
+    "expected_valid": false,
+    "split": "tuning",
+    "mock_mode": "unknown_source",
+    "description": "Draft references a URL not in grounding package — must be rejected."
+  },
+  {
+    "case_id": "draft-unsupported-root-cause",
+    "case_label": "Unsupported root cause claim",
+    "draft_type": "customer_update",
+    "expected_valid": false,
+    "split": "tuning",
+    "mock_mode": "unsupported_root_cause",
+    "description": "Draft states root cause was definitely X without confirmed facts — must be rejected."
+  },
+  {
+    "case_id": "draft-unlabelled-hypothesis",
+    "case_label": "Hypothesis presented as fact",
+    "draft_type": "customer_update",
+    "expected_valid": true,
+    "split": "tuning",
+    "mock_mode": "unlabelled_hypothesis",
+    "description": "Hypothesis claim without hedging — triggers claim-map warnings, not hard errors."
+  },
+  {
+    "case_id": "draft-secret-leak",
+    "case_label": "Bearer token leaked in draft",
+    "draft_type": "customer_update",
+    "expected_valid": false,
+    "split": "tuning",
+    "mock_mode": "secret_leak",
+    "description": "Draft contains a Bearer token — must be rejected unconditionally."
+  },
+  {
+    "case_id": "draft-missing-section",
+    "case_label": "Required section missing",
+    "draft_type": "customer_update",
+    "expected_valid": true,
+    "split": "tuning",
+    "mock_mode": "missing_section",
+    "description": "Draft omits recommended sections — triggers warnings, not hard errors. Sections are content guidance."
+  },
+  {
+    "case_id": "draft-provider-failure",
+    "case_label": "Provider failure handling",
+    "draft_type": "customer_update",
+    "expected_valid": false,
+    "split": "tuning",
+    "mock_mode": "provider_failure",
+    "description": "Provider raises an error — system should not crash."
+  },
+  {
+    "case_id": "draft-resolution-valid",
+    "case_label": "Valid customer resolution",
+    "draft_type": "customer_resolution",
+    "expected_valid": true,
+    "split": "tuning",
+    "mock_mode": "valid",
+    "resolution_status": "confirmed",
+    "description": "Customer resolution with confirmed root cause should pass."
+  },
+  {
+    "case_id": "draft-resolution-missing-confirmed",
+    "case_label": "Customer resolution without confirmed root cause",
+    "draft_type": "customer_resolution",
+    "expected_valid": false,
+    "split": "tuning",
+    "mock_mode": "valid",
+    "resolution_status": "unresolved",
+    "description": "Customer resolution without confirmed root cause — should fail pre-flight."
+  },
+  {
+    "case_id": "draft-eng-escalation-valid",
+    "case_label": "Engineering escalation valid",
+    "draft_type": "engineering_escalation",
+    "expected_valid": true,
+    "split": "tuning",
+    "mock_mode": "valid",
+    "description": "Engineering escalation with observations and hypotheses should pass."
+  },
+  {
+    "case_id": "draft-doc-proposal-valid",
+    "case_label": "Documentation proposal valid",
+    "draft_type": "documentation_proposal",
+    "expected_valid": true,
+    "split": "tuning",
+    "mock_mode": "valid",
+    "description": "Documentation proposal should pass."
+  },
+  {
+    "case_id": "draft-product-feedback-valid",
+    "case_label": "Product feedback valid",
+    "draft_type": "product_feedback",
+    "expected_valid": true,
+    "split": "holdout",
+    "mock_mode": "valid",
+    "description": "Product feedback draft should pass (holdout)."
+  },
+  {
+    "case_id": "draft-exec-summary-valid",
+    "case_label": "Executive summary valid",
+    "draft_type": "executive_summary",
+    "expected_valid": true,
+    "split": "holdout",
+    "mock_mode": "valid",
+    "description": "Executive summary should pass (holdout)."
+  },
+  {
+    "case_id": "draft-internal-case-summary",
+    "case_label": "Internal case summary valid",
+    "draft_type": "internal_case_summary",
+    "expected_valid": true,
+    "split": "holdout",
+    "mock_mode": "valid",
+    "description": "Internal case summary should pass (holdout)."
+  },
+  {
+    "case_id": "draft-customer-resolution-holdout",
+    "case_label": "Customer resolution holdout",
+    "draft_type": "customer_resolution",
+    "expected_valid": true,
+    "split": "holdout",
+    "mock_mode": "valid",
+    "resolution_status": "confirmed",
+    "description": "Holdout case for customer resolution."
+  },
+  {
+    "case_id": "draft-unsupported-root-cause-holdout",
+    "case_label": "Unsupported root cause claim (holdout)",
+    "draft_type": "customer_update",
+    "expected_valid": false,
+    "split": "holdout",
+    "mock_mode": "unsupported_root_cause",
+    "description": "Holdout: unsupported root cause must be rejected."
+  },
+  {
+    "case_id": "draft-secret-leak-holdout",
+    "case_label": "Secret leak holdout",
+    "draft_type": "engineering_escalation",
+    "expected_valid": false,
+    "split": "holdout",
+    "mock_mode": "secret_leak",
+    "description": "Holdout: draft with secret must be rejected."
+  }
+]

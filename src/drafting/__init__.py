@@ -1,0 +1,1 @@
+"""Grounded Gemini drafting for Metronome Support Intelligence."""

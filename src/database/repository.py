@@ -859,6 +859,179 @@ class DocumentationRepository:
         return row
 
     # ------------------------------------------------------------------
+    # Phase 6 — Draft persistence
+    # ------------------------------------------------------------------
+    def create_generated_draft(
+        self,
+        draft_type: str,
+        audience: str,
+        tone: str,
+        subject: str | None,
+        body: str,
+        grounding_package_json: str,
+        used_fact_codes_json: str,
+        used_source_urls_json: str,
+        claim_map_json: str,
+        provider: str,
+        model: str,
+        prompt_version: str,
+        grounding_package_version: str,
+        validation_status: str,
+        validation_errors_json: str,
+        validation_warnings_json: str,
+        unsupported_claims_json: str,
+        status: str,
+        ticket_id: int | None = None,
+        analysis_id: int | None = None,
+        resolution_id: int | None = None,
+        feedback_id: int | None = None,
+    ) -> int:
+        conn = self._get_conn()
+        now = self._utc_now()
+        try:
+            cur = conn.execute(
+                """INSERT INTO support_generated_drafts
+                   (ticket_id, analysis_id, resolution_id, feedback_id,
+                    draft_type, audience, tone,
+                    subject, body,
+                    grounding_package_json,
+                    used_fact_codes_json, used_source_urls_json, claim_map_json,
+                    provider, model, prompt_version, grounding_package_version,
+                    validation_status, validation_errors_json,
+                    validation_warnings_json, unsupported_claims_json,
+                    status, created_at, updated_at)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    ticket_id, analysis_id, resolution_id, feedback_id,
+                    draft_type, audience, tone,
+                    subject, body,
+                    grounding_package_json,
+                    used_fact_codes_json, used_source_urls_json, claim_map_json,
+                    provider, model, prompt_version, grounding_package_version,
+                    validation_status, validation_errors_json,
+                    validation_warnings_json, unsupported_claims_json,
+                    status, now, now,
+                ),
+            )
+            conn.commit()
+            return cur.lastrowid
+        except Exception:
+            conn.rollback()
+            raise
+
+    def get_generated_draft(self, draft_id: int) -> sqlite3.Row | None:
+        conn = self._get_conn()
+        return conn.execute(
+            "SELECT * FROM support_generated_drafts WHERE id = ?",
+            (draft_id,),
+        ).fetchone()
+
+    def list_generated_drafts(
+        self,
+        ticket_id: int | None = None,
+        draft_type: str | None = None,
+        status: str | None = None,
+        validation_status: str | None = None,
+    ) -> list[sqlite3.Row]:
+        conn = self._get_conn()
+        clauses: list[str] = []
+        params: list[object] = []
+        for column, value in [
+            ("ticket_id", ticket_id),
+            ("draft_type", draft_type),
+            ("status", status),
+            ("validation_status", validation_status),
+        ]:
+            if value is not None:
+                clauses.append(f"{column} = ?")
+                params.append(value)
+        where = f"WHERE {' AND '.join(clauses)}" if clauses else ""
+        return conn.execute(
+            f"SELECT * FROM support_generated_drafts {where} ORDER BY created_at DESC, id DESC",
+            params,
+        ).fetchall()
+
+    def update_draft_review_status(
+        self,
+        draft_id: int,
+        status: str,
+        reviewer: str,
+        notes: str | None,
+    ) -> sqlite3.Row:
+        conn = self._get_conn()
+        now = self._utc_now()
+        conn.execute(
+            """UPDATE support_generated_drafts
+               SET status = ?, reviewed_at = ?, reviewed_by = ?,
+                   review_notes = ?, updated_at = ?
+               WHERE id = ?""",
+            (status, now, reviewer, notes, now, draft_id),
+        )
+        conn.commit()
+        row = self.get_generated_draft(draft_id)
+        if row is None:
+            raise ValueError(f"Draft not found: {draft_id}")
+        return row
+
+    def get_latest_draft_for_ticket(
+        self, ticket_id: int, draft_type: str | None = None
+    ) -> sqlite3.Row | None:
+        conn = self._get_conn()
+        if draft_type:
+            return conn.execute(
+                """SELECT * FROM support_generated_drafts
+                   WHERE ticket_id = ? AND draft_type = ?
+                   ORDER BY created_at DESC, id DESC
+                   LIMIT 1""",
+                (ticket_id, draft_type),
+            ).fetchone()
+        return conn.execute(
+            """SELECT * FROM support_generated_drafts
+               WHERE ticket_id = ?
+               ORDER BY created_at DESC, id DESC
+               LIMIT 1""",
+            (ticket_id,),
+        ).fetchone()
+
+    def delete_demo_data(self) -> dict[str, int]:
+        """Delete all demo/support data but NOT documentation."""
+        conn = self._get_conn()
+        counts: dict[str, int] = {}
+        try:
+            for table in [
+                "support_generated_drafts",
+                "support_feedback_items",
+                "support_regression_cases",
+                "support_hypothesis_outcomes",
+                "support_resolution_identifiers",
+                "support_ticket_resolutions",
+                "support_ticket_document_links",
+                "support_ticket_analyses",
+                "support_ticket_evidence",
+                "support_tickets",
+            ]:
+                cur = conn.execute(f"DELETE FROM {table}")
+                counts[table] = cur.rowcount
+            conn.commit()
+            return counts
+        except Exception:
+            conn.rollback()
+            raise
+
+    def count_documentation_pages(self) -> int:
+        conn = self._get_conn()
+        return conn.execute(
+            "SELECT COUNT(*) FROM documentation_pages WHERE status = 'active'"
+        ).fetchone()[0]
+
+    def count_drafts_by_status(self) -> dict[str, int]:
+        conn = self._get_conn()
+        rows = conn.execute(
+            "SELECT status, COUNT(*) as cnt FROM support_generated_drafts GROUP BY status"
+        ).fetchall()
+        return {r["status"]: r["cnt"] for r in rows}
+
+    # ------------------------------------------------------------------
     # Helpers
     # ------------------------------------------------------------------
     @staticmethod
