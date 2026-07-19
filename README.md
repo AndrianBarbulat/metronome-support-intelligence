@@ -530,9 +530,51 @@ Human-review transitions = 100%
 ### Gemini SDK dependency
 
 ```text
-google-generativeai (google-genai)
+google-genai
 ```
 
+The project uses the current `google-genai` SDK (not the legacy `google-generativeai`).
 The provider abstraction allows swapping to Vertex AI or another provider without changing the support workflow.
+
+### Automated tests
+
+All automated tests use the deterministic mock provider and mocked Gemini client.
+No test calls the live Gemini API.
+
+### Manual smoke test
+
+```bash
+python scripts/smoke_test_gemini.py
+```
+
+This requires `GEMINI_API_KEY` and `GEMINI_MODEL`. It is a pre-interview check, not part of the test suite.
+
+### Interactive demo
+
+```bash
+python scripts/seed_demo.py
+python scripts/run_demo.py
+```
+
+Opens a local web interface at `http://127.0.0.1:8501` with overview, investigation, and drafting panels.
+
+### CLI generation
+
+```bash
+python scripts/generate_draft.py \
+  --ticket-id 1 \
+  --type customer_update
+```
+
+CLI generation and the interactive demo are different features.
+
+### Safety model
+
+```
+Deterministic pipeline decides facts.
+Gemini drafts language.
+Validator checks claims.
+Human approves use.
+```
 
 

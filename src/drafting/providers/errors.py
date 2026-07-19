@@ -24,3 +24,8 @@ class DraftingTimeoutError(DraftingProviderError):
 class DraftingInvalidResponseError(DraftingProviderError):
     """Provider returned an unparseable or malformed response."""
     pass
+
+
+class DraftingAuthenticationError(DraftingProviderError):
+    """Authentication or authorization failure (invalid API key, permission denied)."""
+    pass
