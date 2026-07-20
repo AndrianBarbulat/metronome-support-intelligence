@@ -47,7 +47,7 @@ def test_how_it_works_active_state():
         r = c.get("/how-it-works")
         content = r.data.decode("utf-8")
         # The nav item should have the 'active' class
-        assert 'How it works' in content, "Nav label missing"
+        assert 'How it works222' in content, "Nav label missing"
     print("✓ /how-it-works renders with nav label")
 
 

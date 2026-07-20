@@ -389,7 +389,7 @@ STYLE_AND_LAYOUT = f"""<!doctype html><html lang='en'><head><meta charset='utf-8
     <div class='side-status'><div class='status-line'><span>Gemini</span><span>{{gemini_dot}} {{gemini}}</span></div><div class='status-line'><span>Validation</span><span class='badge ok'>ENABLED</span></div><div class='status-line'><span>Review</span><span class='badge accent'>HUMAN</span></div></div>
   </aside>
   <main class='main'>
-    <header class='topbar'><div class='breadcrumbs'>Metronome Support Intelligence / <strong>{{breadcrumb}}</strong></div><div class='top-actions'><a class='btn small' href='/documentation'>Browse documentation</a><a class='btn small primary' href='/'>Ask a question</a></div></header>
+    <header class='topbar'><div class='breadcrumbs'>Metronome Support Intelligence / <strong>{{breadcrumb}}</strong></div><div class='top-actions'><a class='btn small' href='/documentation'>Browse documentation</a><a class='btn small primary' href='/'>Ask a question</a><a class='btn small' href='https://github.com/AndrianBarbulat/metronome-support-intelligence' target='_blank' rel='noreferrer' style='background:var(--surface-3)'>GitHub →</a></div></header>
     <div class='content'>{{body}}<div class='footer'>Documentation retrieval &rarr; deterministic investigation &rarr; grounded Gemini communication &rarr; validation &rarr; human approval</div></div>
   </main>
 </div><div id='toast' class='toast'>Copied to clipboard</div>{_SCRIPT_JS}</body></html>"""
