@@ -51,7 +51,9 @@ def test_flask_route_registration():
 
 
 def test_missing_database_url_on_vercel():
-    """When VERCEL=1 and DATABASE_URL is missing, adapter must raise."""
+    """When VERCEL=1 and DATABASE_URL is missing, adapter falls through to
+    the central DB path resolver.  The resolver raises FileNotFoundError
+    with a clear message when the packaged database is not available."""
     original_vercel = os.environ.pop("VERCEL", None)
     original_db_url = os.environ.pop("DATABASE_URL", None)
     try:
@@ -61,9 +63,9 @@ def test_missing_database_url_on_vercel():
         try:
             adapter = DatabaseAdapter()
             adapter._resolve_backend()
-            assert False, "Should have raised RuntimeError"
-        except RuntimeError as exc:
-            assert "DATABASE_URL" in str(exc)
+            assert False, "Should have raised FileNotFoundError"
+        except FileNotFoundError as exc:
+            assert "Packaged database not found" in str(exc)
     finally:
         if original_vercel is not None:
             os.environ["VERCEL"] = original_vercel

@@ -1,7 +1,8 @@
 """Database adapter supporting SQLite (local) and PostgreSQL (production).
 
 Selects backend based on DATABASE_URL environment variable.
-In Vercel production (VERCEL=1), DATABASE_URL is required.
+On Vercel (VERCEL=1) without DATABASE_URL, SQLite is used via the
+packaged database copied to /tmp.
 """
 
 from __future__ import annotations
@@ -11,6 +12,8 @@ import re
 import sys
 from pathlib import Path
 from typing import Any
+
+from src.database.connection import resolve_db_path
 
 
 class DatabaseAdapter:
@@ -40,15 +43,8 @@ class DatabaseAdapter:
                 self._backend = "sqlite"
                 self._db_path = Path(path)
             else:
-                is_vercel = os.getenv("VERCEL", "") == "1"
-                if is_vercel:
-                    raise RuntimeError(
-                        "DATABASE_URL is required in Vercel production.\n"
-                        "Add it in Project Settings → Environment Variables."
-                    )
-                # Fall back to local SQLite for local dev without explicit config
-                project_root = Path(__file__).resolve().parents[2]
-                self._db_path = project_root / "data" / "metronome_docs.db"
+                # Use the central resolver (handles Vercel /tmp copy automatically)
+                self._db_path = resolve_db_path()
                 self._backend = "sqlite"
         return self._backend
 

@@ -25,6 +25,7 @@ if str(_PROJECT_ROOT) not in sys.path:
 from src.assistant.service import answer_metronome_question
 from src.database.adapter import get_adapter, reset_adapter
 from src.database.repository import DocumentationRepository
+from src.database.connection import resolve_db_path
 from src.documentation.search import search_documentation
 from src.drafting.config import load_config
 from src.drafting.service import review_generated_draft
@@ -32,7 +33,7 @@ from src.support.concept_registry import InvestigationConceptRegistry
 
 load_config()
 
-DB_PATH = _PROJECT_ROOT / "data" / "metronome_docs.db"
+DB_PATH = resolve_db_path()
 
 # ---------------------------------------------------------------------------
 # Flask application
@@ -48,7 +49,12 @@ _is_vercel = os.getenv("VERCEL", "") == "1"
 # Database helpers
 # ---------------------------------------------------------------------------
 def _db() -> DocumentationRepository:
-    """Return a repository for the active backend."""
+    """Return a repository connected to the resolved database path.
+
+    On Vercel the database is copied from the packaged location to /tmp
+    automatically by ``resolve_db_path``.  If the packaged file is missing,
+    a :exc:`FileNotFoundError` with guidance is raised.
+    """
     return DocumentationRepository(DB_PATH)
 
 
@@ -888,8 +894,6 @@ def _dashboard(error: str | None = None) -> str:
     try:
         data = _dashboard_data()
     except Exception as exc:
-        if _is_vercel and not os.getenv("DATABASE_URL"):
-            return _config_error_page("DATABASE_URL is not configured. Add it in Vercel Project Settings → Environment Variables.")
         return _layout(f"<div class='notice error'>{escape(str(exc))}</div>", active="assistant", breadcrumb="Assistant")
     m = data["metrics"]
     notice = f"<div class='notice error'>{escape(error)}</div>" if error else ""

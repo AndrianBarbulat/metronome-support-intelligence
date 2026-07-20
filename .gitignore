@@ -20,11 +20,6 @@ dist/
 .agents/
 .superpowers/
 
-# Database
-data/metronome_docs.db
-data/metronome_docs.db-shm
-data/metronome_docs.db-wal
 
 # CSV output (generated)
-data/parsed/documentation_index.csv
 data/output/
