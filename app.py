@@ -267,12 +267,12 @@ def _layout(body: str, *, active: str = "assistant", breadcrumb: str = "Assistan
         for key, (href, icon, label) in nav.items()
     )
     html = STYLE_AND_LAYOUT
-    html = html.replace("{{title}}", escape(title))
-    html = html.replace("{{nav_html}}", nav_html)
-    html = html.replace("{{breadcrumb}}", escape(breadcrumb))
-    html = html.replace("{{body}}", body)
-    html = html.replace("{{gemini_dot}}", gemini_dot)
-    html = html.replace("{{gemini}}", escape(gemini))
+    html = html.replace("{title}", escape(title))
+    html = html.replace("{nav_html}", nav_html)
+    html = html.replace("{breadcrumb}", escape(breadcrumb))
+    html = html.replace("{body}", body)
+    html = html.replace("{gemini_dot}", gemini_dot)
+    html = html.replace("{gemini}", escape(gemini))
     return html
 
 
