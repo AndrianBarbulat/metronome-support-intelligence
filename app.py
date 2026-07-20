@@ -266,14 +266,14 @@ def _layout(body: str, *, active: str = "assistant", breadcrumb: str = "Assistan
         f"<a class='{'active' if key == active else ''}' href='{href}'><span class='nav-icon'>{icon}</span><span>{label}</span></a>"
         for key, (href, icon, label) in nav.items()
     )
-    return STYLE_AND_LAYOUT.format(
-        title=escape(title),
-        nav_html=nav_html,
-        breadcrumb=escape(breadcrumb),
-        body=body,
-        gemini_dot=gemini_dot,
-        gemini=escape(gemini),
-    )
+    html = STYLE_AND_LAYOUT
+    html = html.replace("{{title}}", escape(title))
+    html = html.replace("{{nav_html}}", nav_html)
+    html = html.replace("{{breadcrumb}}", escape(breadcrumb))
+    html = html.replace("{{body}}", body)
+    html = html.replace("{{gemini_dot}}", gemini_dot)
+    html = html.replace("{{gemini}}", escape(gemini))
+    return html
 
 
 # ---------------------------------------------------------------------------
