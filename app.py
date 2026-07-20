@@ -1363,96 +1363,14 @@ def _article_detail_page(article_id: int, *, chunk_id: int | None = None) -> str
 
 
 def _how_it_works_page() -> str:
+    """Render the engineering case-study page from the presentation module."""
+    from src.presentation.how_it_works import build_page
+
     docs = _documentation_metrics()
     concepts = _concept_metrics()
-    by_scenario = concepts["by_scenario"]
-    workflow = [
-        "Metronome documentation",
-        "Sync and immutable versioning",
-        "Markdown and OpenAPI parsing",
-        "Sections, chunks, code blocks and tables",
-        "Deterministic hybrid retrieval",
-        "Concept mapping and ticket analysis",
-        "Observations, hypotheses and missing evidence",
-        "Adaptive investigation checklist",
-        "Sanitized grounding package",
-        "Gemini structured drafting",
-        "Fact, claim, source and secret validation",
-        "Human review and persisted case history",
-    ]
-    workflow_parts: list[str] = []
-    for index, step in enumerate(workflow, 1):
-        workflow_parts.append(
-            f"<div class='flow-step'><div class='flow-num'>{index}</div><div><div class='flow-title'>{escape(step)}</div></div></div>"
-        )
-        if index < len(workflow):
-            workflow_parts.append("<div class='diagram-arrow'>down</div>")
-    workflow_html = "<div class='pipeline-large'>" + "".join(workflow_parts) + "</div>"
-    ingestion = f"""
-<div class='metric-row'><span>Articles synchronized</span><strong>{_fmt_count(docs['articles'])}</strong></div>
-<div class='metric-row'><span>Immutable document versions</span><strong>Enabled</strong></div>
-<div class='metric-row'><span>Sync-run history</span><strong>Persisted</strong></div>
-<div class='metric-row'><span>Markdown content stored locally</span><strong>Yes</strong></div>"""
-    parsing = f"""
-<div class='metric-row'><span>Sections</span><strong>{_fmt_count(docs['sections'])}</strong></div>
-<div class='metric-row'><span>Searchable chunks</span><strong>{_fmt_count(docs['chunks'])}</strong></div>
-<div class='metric-row'><span>Code blocks</span><strong>{_fmt_count(docs['code_blocks'])}</strong></div>
-<div class='metric-row'><span>Tables</span><strong>{_fmt_count(docs['tables'])}</strong></div>
-<div class='metric-row'><span>OpenAPI blocks</span><strong>{_fmt_count(docs['openapi_blocks'])}</strong></div>
-<p class='muted'>Headings, API metadata, examples, and tables are retained so retrieval returns precise sections instead of entire articles.</p>"""
-    search = """
-<ul>
-  <li>Full-text search</li>
-  <li>Title and heading matching</li>
-  <li>Endpoint and operation matching</li>
-  <li>Technical-token matching</li>
-  <li>Category matching</li>
-  <li>API-reference authority weighting</li>
-  <li>Deterministic reranking</li>
-  <li>Relevant-source and incidental-source handling</li>
-</ul>"""
-    investigation = f"""
-<div class='metric-row'><span>Stable concepts</span><strong>{_fmt_count(concepts['total'])}</strong></div>
-<div class='metric-row'><span>Generic</span><strong>{_fmt_count(by_scenario.get('generic', 0))}</strong></div>
-<div class='metric-row'><span>Contracts</span><strong>{_fmt_count(by_scenario.get('contracts', 0))}</strong></div>
-<div class='metric-row'><span>Usage</span><strong>{_fmt_count(by_scenario.get('usage', 0))}</strong></div>
-<div class='metric-row'><span>Customers</span><strong>{_fmt_count(by_scenario.get('customers', 0))}</strong></div>
-<p class='muted'>Signals are extracted from the issue, observations stay separate from hypotheses, missing evidence is explicit, checklist steps adapt to known evidence, redundant steps are suppressed, and escalation is placed last.</p>"""
-    resolution = """
-<ul>
-  <li>Human-confirmed root causes</li>
-  <li>Hypothesis comparison</li>
-  <li>Verification evidence</li>
-  <li>Regression-case generation</li>
-  <li>Documentation-gap classification</li>
-  <li>Product and observability feedback</li>
-  <li>Human review states</li>
-</ul>"""
-    gemini = """
-<p class='muted'><strong>Gemini does not decide the root cause.</strong> It receives sanitized fact codes, documentation-supported facts, observations, hypotheses marked unconfirmed, missing evidence, allowed source URLs, and required sections.</p>
-<p class='muted'>Gemini returns structured JSON, answer text, used fact codes, used source URLs, and a claim map. Deterministic validation then checks fact references, claim support, source existence, hypothesis wording, resolution status, secret leakage, and required sections.</p>"""
-    storage_tables = [
-        ("support_tickets", "Question and case identity"),
-        ("support_ticket_evidence", "Sanitized ticket evidence"),
-        ("support_ticket_analyses", "Signals, concepts, observations, hypotheses, gaps, and checklist"),
-        ("support_ticket_document_links", "Retrieved documentation sources and relevance metadata"),
-        ("support_generated_drafts", "Generated answer, grounding package, validation, and review state"),
-        ("support_ticket_resolutions", "Optional human-confirmed resolution"),
-        ("support_hypothesis_outcomes", "Comparison between hypotheses and confirmed outcome"),
-        ("support_regression_cases", "Generated regression candidates"),
-        ("support_feedback_items", "Documentation, product, and observability feedback"),
-    ]
-    storage = "<div class='excerpt'>Question -> support ticket -> evidence -> analysis -> documentation links -> generated answer -> validation -> human review -> optional confirmed resolution -> regression and feedback</div>" + "".join(
-        f"<div class='metric-row'><span class='mono'>{escape(name)}</span><span>{escape(description)}</span></div>"
-        for name, description in storage_tables
-    )
-    body = f"""
-<div class='page-head'><div><h1>How it works</h1><p>Support engineers need to search documentation, understand incomplete technical evidence, build investigation steps, communicate with customers, and prepare engineering escalations. A normal documentation chatbot may generate fluent answers but can invent technical conclusions or present hypotheses as facts.</p></div><a class='btn primary' href='/testing'>View testing evidence</a></div>
-<section class='card card-pad'><div class='section-title'><h2>Architecture</h2></div>{workflow_html}</section>
-<div style='height:14px'></div>
-<section class='phase-grid'>{_phase_card('Documentation ingestion', ingestion)}{_phase_card('Parsing', parsing)}{_phase_card('Search and retrieval', search)}{_phase_card('Investigation engine', investigation)}{_phase_card('Resolution and learning loop', resolution)}{_phase_card('Gemini drafting', gemini)}</section>
-<div style='height:14px'></div>
-<section class='card card-pad'><div class='section-title'><h2>Storage model</h2></div>{storage}</section>"""
+    # Merge concept count into docs for the page builder
+    docs["concepts"] = concepts["total"]
+    body = build_page(docs, concepts, VERIFIED_EVIDENCE)
     return _layout(body, active="how", breadcrumb="How it works", title="How it works · Metronome SI")
 
 
